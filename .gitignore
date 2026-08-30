@@ -1,0 +1,18 @@
+# dependencies
+**/node_modules/
+
+# env / secrets
+**/.env
+**/.env.local
+
+# builds
+**/dist/
+**/dist-ssr/
+
+# uploaded images (kept out of git; served from Cloudinary in prod)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# misc
+*.log
+.DS_Store
