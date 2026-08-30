@@ -4,6 +4,10 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 
+// Load environment variables BEFORE requiring routes — some routes (e.g. uploadRoutes)
+// read process.env at module-load time, so this must come first.
+dotenv.config();
+
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -11,8 +15,6 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const galleryRoutes = require('./routes/galleryRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const dbReady = require('./middleware/dbReady');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
