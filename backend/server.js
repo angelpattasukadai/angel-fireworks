@@ -26,16 +26,23 @@ const allowedOrigins = [process.env.CLIENT_URL, process.env.ADMIN_URL].filter(Bo
 app.use(cors(allowedOrigins.length ? { origin: allowedOrigins } : {}));
 app.use(express.json());
 
-// Database Connection
+// Database Connection — keeps retrying so the server self-heals if the DB is briefly
+// unreachable at boot (e.g. Atlas whitelist not ready yet). No manual restart needed.
 mongoose.set('bufferTimeoutMS', 8000); // fail buffered queries faster if DB is down
-mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 8000 })
-    .then(() => console.log('✅ MongoDB connected to Angel Fireworks'))
-    .catch(err => {
-        console.error('❌ MongoDB connection failed:', err.message);
-        console.error('   → Whitelist your IP in Atlas (Network Access), or check MONGO_URI / internet.');
-    });
 
-mongoose.connection.on('disconnected', () => console.warn('⚠️  MongoDB disconnected.'));
+const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 8000 });
+        console.log('✅ MongoDB connected to Angel Fireworks');
+    } catch (err) {
+        console.error('❌ MongoDB connection failed:', err.message);
+        console.error('   → Retrying in 5s… (check Atlas Network Access 0.0.0.0/0 and MONGO_URI)');
+        setTimeout(connectDB, 5000); // retry until it succeeds
+    }
+};
+connectDB();
+
+mongoose.connection.on('disconnected', () => console.warn('⚠️  MongoDB disconnected — will auto-reconnect.'));
 mongoose.connection.on('reconnected', () => console.log('✅ MongoDB reconnected.'));
 
 // Serve uploaded product images (proxied via /api on both frontends).
