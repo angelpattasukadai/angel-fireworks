@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { NavLink, useNavigate, Outlet } from 'react-router-dom';
-import { ShieldCheck, LogOut, LayoutDashboard, Package, Images, Users, Menu as MenuIcon, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ShieldCheck, LogOut, LayoutDashboard, Package, Images, Users, ReceiptText, Menu as MenuIcon, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { clearAuth, getUsername, getRole, getPermissions, updateAuth } from '../auth';
 import api from '../api';
 
@@ -17,6 +17,7 @@ const STORAGE_KEY = 'angel_admin_sidebar_collapsed';
 const ALL_LINKS = [
   { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, end: true, perm: true },
   { to: '/catalog', label: 'Catalog', icon: <Package size={20} />, perm: 'products' },
+  { to: '/billing', label: 'Billing', icon: <ReceiptText size={20} />, perm: 'billing' },
   { to: '/gallery', label: 'Gallery', icon: <Images size={20} />, perm: 'gallery' },
   { to: '/users', label: 'Users', icon: <Users size={20} />, perm: 'super' },
 ];

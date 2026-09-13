@@ -14,6 +14,7 @@ const authRoutes = require('./routes/authRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const galleryRoutes = require('./routes/galleryRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const invoiceRoutes = require('./routes/invoiceRoutes');
 const dbReady = require('./middleware/dbReady');
 
 const app = express();
@@ -57,6 +58,7 @@ app.use('/api/products', dbReady, productRoutes);
 app.use('/api/orders', dbReady, orderRoutes);
 app.use('/api/gallery', dbReady, galleryRoutes);
 app.use('/api/admins', dbReady, adminRoutes);
+app.use('/api/invoices', dbReady, invoiceRoutes);
 app.use('/api/upload', uploadRoutes); // no DB needed for uploads
 
 // Health Check

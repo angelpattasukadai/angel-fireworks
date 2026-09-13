@@ -12,7 +12,7 @@ import {
 import api from '../api';
 import { imgUrl } from '../config';
 
-const EMPTY_FORM = { name: '', description: '', price: '', discountedPrice: '', category: '', image: '', inStock: true };
+const EMPTY_FORM = { name: '', description: '', price: '', discountedPrice: '', category: '', image: '', inStock: true, sku: '', unit: 'pcs', gstRate: '0', stockQuantity: '0', trackStock: false };
 
 // <img> that falls back to a placeholder when the src is missing or fails to load.
 // Resets its "broken" state whenever the src changes, so typing/correcting a URL re-attempts
@@ -114,6 +114,7 @@ const ManageCatalog = () => {
       name: p.name || '', description: p.description || '', price: p.price ?? '',
       discountedPrice: p.discountedPrice ?? '', category: p.category || '',
       image: p.image || '', inStock: p.inStock !== false,
+      sku: p.sku || '', unit: p.unit || 'pcs', gstRate: p.gstRate ?? '0', stockQuantity: p.stockQuantity ?? '0', trackStock: !!p.trackStock,
     });
     setDialogOpen(true);
   };
@@ -150,6 +151,8 @@ const ManageCatalog = () => {
       discountedPrice: form.discountedPrice === '' ? null : offerNum, // null clears any existing offer
       image: form.image.trim(),
       inStock: form.inStock,
+      sku: form.sku.trim(), unit: form.unit.trim() || 'pcs', gstRate: Number(form.gstRate) || 0,
+      stockQuantity: Math.max(0, Number(form.stockQuantity) || 0), trackStock: form.trackStock,
     };
     try {
       if (editing) {
@@ -337,6 +340,21 @@ const ManageCatalog = () => {
                   <TextField fullWidth label="MRP (₹)" type="number" value={form.price} onChange={(e) => setField('price', e.target.value)}
                     required error={form.price !== '' && !priceValid}
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <TextField fullWidth label="GST %" type="number" value={form.gstRate} onChange={(e) => setField('gstRate', e.target.value)} inputProps={{ min: 0, max: 100 }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <TextField fullWidth label="Item code" value={form.sku} onChange={(e) => setField('sku', e.target.value)} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <TextField fullWidth label="Unit" value={form.unit} onChange={(e) => setField('unit', e.target.value)} placeholder="pcs / box" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+                </Grid>
+                <Grid item xs={6} sm={3}>
+                  <TextField fullWidth label="Stock Qty" type="number" value={form.stockQuantity} disabled={!form.trackStock} onChange={(e) => setField('stockQuantity', e.target.value)} inputProps={{ min: 0 }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+                </Grid>
+                <Grid item xs={12}>
+                  <FormControlLabel control={<Switch checked={form.trackStock} onChange={(e) => setField('trackStock', e.target.checked)} />} label={<Typography sx={{ color: '#F6F1FF', fontWeight: 600 }}>Track stock automatically when billing</Typography>} />
                 </Grid>
                 <Grid item xs={6} sm={3}>
                   <TextField fullWidth label="Offer (₹)" type="number" value={form.discountedPrice} onChange={(e) => setField('discountedPrice', e.target.value)}

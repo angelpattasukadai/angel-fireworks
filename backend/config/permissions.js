@@ -3,6 +3,7 @@
 const PERMISSIONS = [
     { key: 'products', label: 'Manage Products (Catalog)' },
     { key: 'orders', label: 'Manage Orders' },
+    { key: 'billing', label: 'Billing & Invoices' },
     { key: 'gallery', label: 'Manage Gallery' },
 ];
 
