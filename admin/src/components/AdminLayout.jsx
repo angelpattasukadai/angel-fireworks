@@ -18,6 +18,8 @@ const ALL_LINKS = [
   { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, end: true, perm: true },
   { to: '/catalog', label: 'Catalog', icon: <Package size={20} />, perm: 'products' },
   { to: '/billing', label: 'Billing', icon: <ReceiptText size={20} />, perm: 'billing' },
+  { to: '/invoices', label: 'Bills & Payments', icon: <ReceiptText size={20} />, perm: 'billing' },
+  { to: '/shop', label: 'Shop GST Settings', icon: <ReceiptText size={20} />, perm: 'super' },
   { to: '/gallery', label: 'Gallery', icon: <Images size={20} />, perm: 'gallery' },
   { to: '/users', label: 'Users', icon: <Users size={20} />, perm: 'super' },
 ];

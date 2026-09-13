@@ -9,6 +9,8 @@ import AdminLayout from './components/AdminLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import RequirePermission from './components/RequirePermission';
 import Billing from './pages/Billing';
+import Invoices from './pages/Invoices';
+import ShopSettings from './pages/ShopSettings';
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/catalog" element={<RequirePermission perm="products"><ManageCatalog /></RequirePermission>} />
           <Route path="/billing" element={<RequirePermission perm="billing"><Billing /></RequirePermission>} />
+          <Route path="/invoices" element={<RequirePermission perm="billing"><Invoices /></RequirePermission>} />
+          <Route path="/shop" element={<RequirePermission perm="super"><ShopSettings /></RequirePermission>} />
           <Route path="/gallery" element={<RequirePermission perm="gallery"><ManageGallery /></RequirePermission>} />
           <Route path="/users" element={<RequirePermission perm="super"><ManageUsers /></RequirePermission>} />
         </Route>

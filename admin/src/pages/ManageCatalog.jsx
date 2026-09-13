@@ -12,7 +12,7 @@ import {
 import api from '../api';
 import { imgUrl } from '../config';
 
-const EMPTY_FORM = { name: '', description: '', price: '', discountedPrice: '', category: '', image: '', inStock: true, sku: '', unit: 'pcs', gstRate: '0', stockQuantity: '0', trackStock: false };
+const EMPTY_FORM = { name: '', description: '', price: '', discountedPrice: '', category: '', image: '', inStock: true, sku: '', unit: 'pcs', gstRate: '0', hsn: '', priceIncludesTax: false, stockQuantity: '0', trackStock: false };
 
 // <img> that falls back to a placeholder when the src is missing or fails to load.
 // Resets its "broken" state whenever the src changes, so typing/correcting a URL re-attempts
@@ -115,6 +115,7 @@ const ManageCatalog = () => {
       discountedPrice: p.discountedPrice ?? '', category: p.category || '',
       image: p.image || '', inStock: p.inStock !== false,
       sku: p.sku || '', unit: p.unit || 'pcs', gstRate: p.gstRate ?? '0', stockQuantity: p.stockQuantity ?? '0', trackStock: !!p.trackStock,
+      hsn: p.hsn || '', priceIncludesTax: !!p.priceIncludesTax,
     });
     setDialogOpen(true);
   };
@@ -152,6 +153,7 @@ const ManageCatalog = () => {
       image: form.image.trim(),
       inStock: form.inStock,
       sku: form.sku.trim(), unit: form.unit.trim() || 'pcs', gstRate: Number(form.gstRate) || 0,
+      hsn: form.hsn.trim(), priceIncludesTax: form.priceIncludesTax,
       stockQuantity: Math.max(0, Number(form.stockQuantity) || 0), trackStock: form.trackStock,
     };
     try {
@@ -364,6 +366,7 @@ const ManageCatalog = () => {
                 </Grid>
 
                 {/* Image controls */}
+                <Grid item xs={12}><TextField fullWidth label="HSN code" value={form.hsn} onChange={(e) => setField('hsn', e.target.value)} /><FormControlLabel control={<Switch checked={form.priceIncludesTax} onChange={(e) => setField('priceIncludesTax', e.target.checked)} />} label="Product prices include GST" /></Grid>
                 <Grid item xs={12}>
                   <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mb: 1 }}><Typography sx={{ color: '#8E7CAD', fontSize: '0.75rem', fontWeight: 700 }}>PRODUCT IMAGE</Typography></Divider>
                   <TextField fullWidth label="Image URL (or upload below)" value={form.image} onChange={(e) => setField('image', e.target.value)}

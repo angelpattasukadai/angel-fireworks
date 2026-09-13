@@ -7,6 +7,8 @@ const productSchema = new mongoose.Schema({
     discountedPrice: { type: Number },
     category: { type: String, required: true },
     sku: { type: String, trim: true, default: '' },
+    hsn: { type: String, trim: true, default: '' },
+    priceIncludesTax: { type: Boolean, default: false },
     unit: { type: String, trim: true, default: 'pcs' },
     gstRate: { type: Number, min: 0, max: 100, default: 0 },
     stockQuantity: { type: Number, min: 0, default: 0 },

@@ -59,6 +59,7 @@ app.use('/api/orders', dbReady, orderRoutes);
 app.use('/api/gallery', dbReady, galleryRoutes);
 app.use('/api/admins', dbReady, adminRoutes);
 app.use('/api/invoices', dbReady, invoiceRoutes);
+app.use('/api/business', dbReady, require('./routes/businessRoutes'));
 app.use('/api/upload', uploadRoutes); // no DB needed for uploads
 
 // Health Check
