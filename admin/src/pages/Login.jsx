@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Container, Paper, Typography, TextField, Button, InputAdornment, IconButton, Alert } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Lock, User, Eye, EyeOff, ShieldCheck, LogIn } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import api from '../api';
 import { saveAuth, isLoggedIn } from '../auth';
 
@@ -12,10 +12,11 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
   // Already logged in? Skip straight to the dashboard.
   if (isLoggedIn()) {
-    return null; // App's ProtectedRoute will handle; but avoid flashing the form
+    return <Navigate to="/" replace />;
   }
 
   const handleChange = (e) => {
@@ -28,6 +29,15 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
+      // A sleeping backend can take over 50 seconds to start. Warm it with a
+      // read-only request before submitting credentials; never retry login POSTs.
+      setConnecting(true);
+      const health = await api.get('/health', { timeout: 90000 });
+      if (health.data?.db !== 'connected') {
+        setError('Server is starting, but the database is not ready yet. Please try again shortly.');
+        return;
+      }
+      setConnecting(false);
       const res = await api.post('/auth/login', form);
       saveAuth(res.data);
       navigate('/', { replace: true });
@@ -36,7 +46,7 @@ const Login = () => {
       if (err.response?.data?.error) {
         msg = err.response.data.error; // clean message from the backend (e.g. bad login, DB down)
       } else if (err.code === 'ECONNABORTED') {
-        msg = 'Request timed out. Please check your connection and try again.';
+        msg = 'The server is taking longer than expected to respond. Please try again shortly.';
       } else if (!err.response) {
         msg = 'Cannot reach the server. Make sure the backend is running.';
       } else {
@@ -45,6 +55,7 @@ const Login = () => {
       setError(msg);
     } finally {
       setLoading(false);
+      setConnecting(false);
     }
   };
 
@@ -72,6 +83,7 @@ const Login = () => {
               </Typography>
             </Box>
 
+            {connecting && <Alert severity="info" sx={{ mb: 3 }}>Connecting to the server. First login after inactivity may take up to 90 seconds.</Alert>}
             {error && (
               <Alert severity="error" sx={{ mb: 3, borderRadius: '12px', bgcolor: 'rgba(239,68,68,0.1)', color: '#F6F1FF', border: '1px solid rgba(239,68,68,0.25)', '& .MuiAlert-icon': { color: '#ef4444' } }}>
                 {error}
@@ -107,7 +119,7 @@ const Login = () => {
                   startIcon={<LogIn size={20} />}
                   sx={{ py: 1.6, bgcolor: '#D4AF37', color: '#1A0B30', borderRadius: '14px', fontWeight: 800, fontSize: '1rem', '&:hover': { bgcolor: '#E8C84A' }, '&:disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' } }}
                 >
-                  {loading ? 'Signing in…' : 'Sign In'}
+                  {connecting ? 'Connecting…' : loading ? 'Signing in…' : 'Sign In'}
                 </Button>
               </motion.div>
             </form>
