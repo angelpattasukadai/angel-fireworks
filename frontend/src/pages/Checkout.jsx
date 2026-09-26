@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Info, Trash2, Plus, Minus, CheckCircle, MessageCircle, User, Phone, MapPin, Hash, ShieldCheck, Truck, PhoneCall, ShoppingBag } from 'lucide-react';
 import axios from 'axios';
 import { apiUrl, imgUrl } from '../config';
+import LegalNotice from '../components/LegalNotice';
 
 // Business WhatsApp number that receives order inquiries
 const WHATSAPP_NUMBER = '916374254296';
@@ -116,6 +117,7 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
 
   return (
     <Box sx={{ minHeight: '100vh' }}>
+      <LegalNotice sx={{ pt: { xs: 4, md: 6 } }} />
       <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

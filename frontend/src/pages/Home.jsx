@@ -7,6 +7,7 @@ import logo1 from '../assets/logo1.png';
 import logo2 from '../assets/logo2.png';
 import addPoster from '../assets/add.jpeg';
 import FireworksAnimation from '../components/FireworksAnimation';
+import LegalNotice from '../components/LegalNotice';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -16,6 +17,9 @@ const fadeUp = {
 const Home = () => {
   return (
     <Box sx={{ overflowX: 'hidden' }}>
+
+      {/* Legal ordering notice (2018 Supreme Court order) */}
+      <LegalNotice sx={{ pt: 3 }} />
 
       {/* ────────────────── FULL WIDTH HERO ────────────────── */}
       <Box sx={{
