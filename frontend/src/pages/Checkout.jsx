@@ -117,7 +117,6 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
 
   return (
     <Box sx={{ minHeight: '100vh' }}>
-      <LegalNotice sx={{ pt: { xs: 4, md: 6 } }} />
       <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 } }}>
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -283,6 +282,8 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
           </Grid>
         </Grid>
       </Container>
+      {/* Legal ordering notice (2018 Supreme Court order) */}
+      <LegalNotice sx={{ pb: { xs: 6, md: 8 } }} />
     </Box>
   );
 };

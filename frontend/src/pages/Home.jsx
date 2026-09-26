@@ -18,9 +18,6 @@ const Home = () => {
   return (
     <Box sx={{ overflowX: 'hidden' }}>
 
-      {/* Legal ordering notice (2018 Supreme Court order) */}
-      <LegalNotice sx={{ pt: 3 }} />
-
       {/* ────────────────── FULL WIDTH HERO ────────────────── */}
       <Box sx={{
         minHeight: 'calc(100vh - 80px)',
@@ -224,6 +221,9 @@ const Home = () => {
           </motion.div>
         </Container>
       </Box>
+
+      {/* Legal ordering notice (2018 Supreme Court order) */}
+      <LegalNotice sx={{ pb: 8 }} />
 
     </Box>
   );
