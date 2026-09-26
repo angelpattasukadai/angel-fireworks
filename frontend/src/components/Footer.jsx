@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Container, Divider, Grid } from '@mui/material';
-import { MapPin, Phone, Mail } from 'lucide-react';
+import { MapPin, Phone, Mail, FileText } from 'lucide-react';
 import logo1 from '../assets/logo1.png';
 
 const Footer = () => {
@@ -33,11 +33,15 @@ const Footer = () => {
           <Grid item xs={12} md={4}>
             <Typography sx={{ fontWeight: 700, mb: 2, fontSize: '1.05rem' }}>Contact Us</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <MapPin size={16} color="#D4AF37" />
-                <Typography component="a" href="https://share.google/JoLvNHNDKfrShJjZM" target="_blank" color="text.secondary" sx={{ textDecoration: 'none', '&:hover': { color: '#D4AF37' }, transition: 'color 0.2s' }}>
-                  Sivakasi, Tamil Nadu
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <MapPin size={16} color="#D4AF37" style={{ marginTop: 4, flexShrink: 0 }} />
+                <Typography component="a" href="https://share.google/JoLvNHNDKfrShJjZM" target="_blank" color="text.secondary" sx={{ textDecoration: 'none', lineHeight: 1.6, '&:hover': { color: '#D4AF37' }, transition: 'color 0.2s' }}>
+                  M/S Angel Pattasu Kadai<br />Plot No. 8, NH-7 Main Road,<br />SF. No. 47/4, Ayyanar Nagar,<br />Pattampudhur Village, Tamil Nadu
                 </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                <FileText size={16} color="#D4AF37" style={{ marginTop: 4, flexShrink: 0 }} />
+                <Typography color="text.secondary" sx={{ fontSize: '0.9rem', lineHeight: 1.5 }}>Licence No: E/SS/TN/24/312(E11)2020</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Phone size={16} color="#D4AF37" />
@@ -55,7 +59,7 @@ const Footer = () => {
         </Grid>
         <Divider sx={{ mb: 3 }} />
         <Typography variant="body2" color="text.secondary" align="center" sx={{ fontSize: '0.85rem' }}>
-          © {new Date().getFullYear()} Angel Fireworks Industries — Gold Bird Brand. All rights reserved. | Proudly Manufactured in India 🇮🇳
+          © {new Date().getFullYear()} M/S Angel Pattasu Kadai — Gold Bird Brand. All rights reserved. | Licence No: E/SS/TN/24/312(E11)2020 | Proudly Manufactured in India 🇮🇳
         </Typography>
       </Container>
     </Box>

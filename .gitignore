@@ -16,3 +16,7 @@ backend/uploads/*
 # misc
 *.log
 .DS_Store
+
+# local scratch / generated output
+output/
+tmp/

@@ -14,12 +14,25 @@ export function calculate(items, discountAmount, interstate) {
     const allocated = round(discount - remaining);
     const lineDiscount = index === base.length - 1 ? remaining : round((subtotal ? round(discount * cumulative / subtotal) : 0) - allocated);
     remaining = round(remaining - lineDiscount);
-    const taxableAmount = round(i.gross - lineDiscount);
-    const cgstAmount = interstate ? 0 : round(taxableAmount * i.gstRate / 200);
-    const sgstAmount = cgstAmount;
-    const igstAmount = interstate ? round(taxableAmount * i.gstRate / 100) : 0;
-    const gstAmount = round(cgstAmount + sgstAmount + igstAmount);
-    return { ...i, discountAmount: lineDiscount, taxableAmount, cgstAmount, sgstAmount, igstAmount, gstAmount, total: round(taxableAmount + gstAmount) };
+    let taxableAmount, cgstAmount, sgstAmount, igstAmount, gstAmount, total;
+    if (i.priceIncludesTax) {
+      // Keep the customer-facing line total exact (rate × qty, no paise drift) and derive the tax
+      // from inside it, so a cash bill shows clean amounts.
+      total = round(i.rate * i.quantity - lineDiscount);
+      taxableAmount = round(total / (1 + i.gstRate / 100));
+      gstAmount = round(total - taxableAmount);
+      igstAmount = interstate ? gstAmount : 0;
+      cgstAmount = interstate ? 0 : round(gstAmount / 2);
+      sgstAmount = interstate ? 0 : round(gstAmount - cgstAmount);
+    } else {
+      taxableAmount = round(i.gross - lineDiscount);
+      cgstAmount = interstate ? 0 : round(taxableAmount * i.gstRate / 200);
+      sgstAmount = cgstAmount;
+      igstAmount = interstate ? round(taxableAmount * i.gstRate / 100) : 0;
+      gstAmount = round(cgstAmount + sgstAmount + igstAmount);
+      total = round(taxableAmount + gstAmount);
+    }
+    return { ...i, discountAmount: lineDiscount, taxableAmount, cgstAmount, sgstAmount, igstAmount, gstAmount, total };
   });
   const sum = (field) => round(lines.reduce((s, i) => s + i[field], 0));
   return { items: lines, subtotal, discountAmount: discount, taxableAmount: sum('taxableAmount'), cgstAmount: sum('cgstAmount'), sgstAmount: sum('sgstAmount'), igstAmount: sum('igstAmount'), gstAmount: sum('gstAmount'), grandTotal: sum('total') };

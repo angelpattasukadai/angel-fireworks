@@ -8,4 +8,9 @@ module.exports = mongoose.model('Business', new mongoose.Schema({
   stateName: { type: String, required: true, trim: true },
   phone: { type: String, default: '' },
   demo: { type: Boolean, default: true },
+  // Overall tax settings — one GST rate, one HSN and one tax-inclusive flag apply to every item
+  // billed, instead of a per-product value.
+  gstRate: { type: Number, min: 0, max: 100, default: 18 },
+  hsn: { type: String, trim: true, default: '3604' },
+  priceIncludesTax: { type: Boolean, default: true },
 }, { timestamps: true }));

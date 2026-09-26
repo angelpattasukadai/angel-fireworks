@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { NavLink, useNavigate, Outlet } from 'react-router-dom';
-import { ShieldCheck, LogOut, LayoutDashboard, Package, Images, Users, ReceiptText, Menu as MenuIcon, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { ShieldCheck, LogOut, LayoutDashboard, Package, Images, Users, ReceiptText, FileText, Menu as MenuIcon, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { clearAuth, getUsername, getRole, getPermissions, updateAuth } from '../auth';
 import api from '../api';
 
@@ -18,6 +18,7 @@ const ALL_LINKS = [
   { to: '/', label: 'Dashboard', icon: <LayoutDashboard size={20} />, end: true, perm: true },
   { to: '/catalog', label: 'Catalog', icon: <Package size={20} />, perm: 'products' },
   { to: '/billing', label: 'Billing', icon: <ReceiptText size={20} />, perm: 'billing' },
+  { to: '/estimates', label: 'Estimates', icon: <FileText size={20} />, perm: 'billing' },
   { to: '/invoices', label: 'Bills & Payments', icon: <ReceiptText size={20} />, perm: 'billing' },
   { to: '/shop', label: 'Shop GST Settings', icon: <ReceiptText size={20} />, perm: 'super' },
   { to: '/gallery', label: 'Gallery', icon: <Images size={20} />, perm: 'gallery' },

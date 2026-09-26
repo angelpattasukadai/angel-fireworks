@@ -7,7 +7,7 @@ import {
 import { motion } from 'framer-motion';
 import {
   Plus, Search, Edit, Trash2, X, Upload, Link2, ImageOff, Package, CheckCircle2,
-  XCircle, Tag, Boxes
+  XCircle, Tag, Boxes, FileSpreadsheet, Download, UploadCloud, AlertTriangle
 } from 'lucide-react';
 import api from '../api';
 import { imgUrl } from '../config';
@@ -66,6 +66,15 @@ const ManageCatalog = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
+
+  // ── Bulk CSV/Excel import ──
+  const bulkInputRef = useRef(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkRows, setBulkRows] = useState([]);
+  const [bulkFileName, setBulkFileName] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkError, setBulkError] = useState('');
+  const [bulkErrors, setBulkErrors] = useState([]);
 
   const fetchProducts = () => {
     setLoading(true);
@@ -190,6 +199,96 @@ const ManageCatalog = () => {
     }
   };
 
+  // Columns the importer understands (also the template header order).
+  const TEMPLATE_COLUMNS = ['name', 'description', 'price', 'discountedPrice', 'category', 'image', 'inStock', 'sku', 'unit', 'stockQuantity', 'trackStock'];
+  // Forgiving header matching: lowercased, spaces/underscores stripped → canonical key.
+  const HEADER_ALIASES = {
+    id: 'id', name: 'name', productname: 'name', description: 'description', desc: 'description',
+    price: 'price', mrp: 'price', discountedprice: 'discountedPrice', offerprice: 'discountedPrice', discountprice: 'discountedPrice',
+    category: 'category', image: 'image', imageurl: 'image', imagelink: 'image',
+    instock: 'inStock', available: 'inStock', sku: 'sku', itemcode: 'sku', code: 'sku',
+    hsn: 'hsn', hsncode: 'hsn', unit: 'unit', gstrate: 'gstRate', gst: 'gstRate',
+    stockquantity: 'stockQuantity', stock: 'stockQuantity', qty: 'stockQuantity',
+    trackstock: 'trackStock', priceincludestax: 'priceIncludesTax', gstincluded: 'priceIncludesTax', taxinclusive: 'priceIncludesTax',
+  };
+
+  const csvCell = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const downloadTemplate = () => {
+    const samples = [
+      { name: 'Red Sparkler 10cm', description: 'Bright red sparkler', price: 120, discountedPrice: 100, category: 'Sparklers', image: '', inStock: 'TRUE', sku: 'SPK-RED-10', unit: 'box', stockQuantity: 50, trackStock: 'TRUE' },
+      { name: 'Flower Pot Small', description: '', price: 80, discountedPrice: '', category: 'Flower Pots', image: '', inStock: 'TRUE', sku: 'FP-S', unit: 'box', stockQuantity: 0, trackStock: 'FALSE' },
+    ];
+    const lines = [TEMPLATE_COLUMNS.join(','), ...samples.map((r) => TEMPLATE_COLUMNS.map((c) => csvCell(r[c])).join(','))];
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'angel-products-template.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Export the current catalog with a hidden `id` column so re-uploading UPDATES those rows
+  // (change a few cells → only those products change) while blank-id rows are added as new.
+  const downloadCatalog = () => {
+    const cols = ['id', ...TEMPLATE_COLUMNS];
+    const boolCell = (v) => (v === false ? 'FALSE' : 'TRUE');
+    const lines = [cols.join(',')];
+    for (const p of products) {
+      const row = {
+        id: p._id, name: p.name, description: p.description, price: p.price,
+        discountedPrice: p.discountedPrice ?? '', category: p.category,
+        image: p.image, inStock: boolCell(p.inStock), sku: p.sku,
+        unit: p.unit, stockQuantity: p.stockQuantity ?? 0, trackStock: boolCell(p.trackStock),
+      };
+      lines.push(cols.map((c) => csvCell(row[c])).join(','));
+    }
+    const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `angel-catalog-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const openBulk = () => { setBulkRows([]); setBulkFileName(''); setBulkError(''); setBulkErrors([]); setBulkOpen(true); };
+  const handleBulkFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (bulkInputRef.current) bulkInputRef.current.value = '';
+    if (!file) return;
+    setBulkBusy(true); setBulkError(''); setBulkErrors([]); setBulkRows([]); setBulkFileName(file.name);
+    try {
+      const XLSX = await import('xlsx');
+      const wb = XLSX.read(await file.arrayBuffer());
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      const rows = raw.map((r) => {
+        const out = {};
+        for (const [k, v] of Object.entries(r)) {
+          const canon = HEADER_ALIASES[String(k).toLowerCase().replace(/[\s_]+/g, '')];
+          if (canon) out[canon] = typeof v === 'string' ? v.trim() : v;
+        }
+        return out;
+      }).filter((r) => String(r.name ?? '').trim() !== '' || String(r.price ?? '').trim() !== '');
+      if (!rows.length) { setBulkError('No product rows found. Use the template and keep the header row.'); }
+      setBulkRows(rows);
+    } catch (err) {
+      setBulkError('Could not read the file. Make sure it is a valid .csv or .xlsx.');
+    } finally { setBulkBusy(false); }
+  };
+
+  const importBulk = async () => {
+    if (!bulkRows.length) return;
+    setBulkBusy(true); setBulkError(''); setBulkErrors([]);
+    try {
+      const res = await api.post('/products/bulk', { products: bulkRows });
+      setBulkOpen(false);
+      fetchProducts();
+      const { created = 0, updated = 0 } = res.data;
+      alert(`Import done.\n\n• ${created} new product(s) added\n• ${updated} existing product(s) re-synced from your sheet\n\nOnly the cells you changed differ — the rest stay exactly as they were.`);
+    } catch (err) {
+      setBulkError(err.response?.data?.error || 'Import failed. Please try again.');
+      setBulkErrors(err.response?.data?.errors || []);
+    } finally { setBulkBusy(false); }
+  };
+
   const stats = [
     { icon: <Boxes size={22} />, label: 'Total Products', value: products.length, color: '#D4AF37' },
     { icon: <CheckCircle2 size={22} />, label: 'In Stock', value: inStockCount, color: '#10b981' },
@@ -206,10 +305,16 @@ const ManageCatalog = () => {
           <Typography variant="h2" sx={{ fontWeight: 800, color: '#D4AF37', fontSize: { xs: '2rem', md: '2.8rem' }, letterSpacing: '-1px' }}>Manage Products</Typography>
           <Typography sx={{ color: '#A99BC9', fontSize: '0.95rem', mt: 1 }}>Add, edit, price & upload images. Changes appear on the customer website on refresh.</Typography>
         </Box>
-        <Button variant="contained" startIcon={<Plus size={18} />} onClick={openAdd}
-          sx={{ borderRadius: '14px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, px: 3.5, py: 1.3, '&:hover': { bgcolor: '#E8C84A' } }}>
-          Add Product
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+          <Button variant="outlined" startIcon={<FileSpreadsheet size={18} />} onClick={openBulk}
+            sx={{ borderRadius: '14px', borderColor: 'rgba(255,255,255,0.2)', color: '#C4B5D4', fontWeight: 700, px: 3, py: 1.3, '&:hover': { borderColor: '#D4AF37', color: '#D4AF37', bgcolor: 'rgba(212,175,55,0.06)' } }}>
+            Bulk Upload
+          </Button>
+          <Button variant="contained" startIcon={<Plus size={18} />} onClick={openAdd}
+            sx={{ borderRadius: '14px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, px: 3.5, py: 1.3, '&:hover': { bgcolor: '#E8C84A' } }}>
+            Add Product
+          </Button>
+        </Box>
       </Box>
 
       {/* Stats */}
@@ -344,9 +449,6 @@ const ManageCatalog = () => {
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <TextField fullWidth label="GST %" type="number" value={form.gstRate} onChange={(e) => setField('gstRate', e.target.value)} inputProps={{ min: 0, max: 100 }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
-                </Grid>
-                <Grid item xs={6} sm={3}>
                   <TextField fullWidth label="Item code" value={form.sku} onChange={(e) => setField('sku', e.target.value)} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
                 </Grid>
                 <Grid item xs={6} sm={3}>
@@ -365,8 +467,7 @@ const ManageCatalog = () => {
                     sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
                 </Grid>
 
-                {/* Image controls */}
-                <Grid item xs={12}><TextField fullWidth label="HSN code" value={form.hsn} onChange={(e) => setField('hsn', e.target.value)} /><FormControlLabel control={<Switch checked={form.priceIncludesTax} onChange={(e) => setField('priceIncludesTax', e.target.checked)} />} label="Product prices include GST" /></Grid>
+                {/* GST & HSN are now one shop-wide setting (Shop GST Settings), not per product. */}
                 <Grid item xs={12}>
                   <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mb: 1 }}><Typography sx={{ color: '#8E7CAD', fontSize: '0.75rem', fontWeight: 700 }}>PRODUCT IMAGE</Typography></Divider>
                   <TextField fullWidth label="Image URL (or upload below)" value={form.image} onChange={(e) => setField('image', e.target.value)}
@@ -407,6 +508,64 @@ const ManageCatalog = () => {
             startIcon={saving ? <CircularProgress size={16} sx={{ color: '#1A0B30' }} /> : null}
             sx={{ borderRadius: '12px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, px: 4, '&:hover': { bgcolor: '#E8C84A' }, '&:disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' } }}>
             {saving ? 'Saving…' : editing ? 'Update Product' : 'Add Product'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Bulk import dialog ── */}
+      <Dialog open={bulkOpen} onClose={() => !bulkBusy && setBulkOpen(false)} fullWidth maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: '20px', bgcolor: '#211042', backgroundImage: 'none', border: '1px solid rgba(255,255,255,0.1)' } }}>
+        <DialogTitle sx={{ fontWeight: 800, color: '#F6F1FF', display: 'flex', alignItems: 'center', gap: 1.2 }}>
+          <FileSpreadsheet size={22} color="#D4AF37" /> Bulk Upload Products
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: '#A99BC9', fontSize: '0.9rem', mb: 2 }}>
+            <strong style={{ color: '#F6F1FF' }}>To add new products:</strong> download the blank template, fill it, upload.<br />
+            <strong style={{ color: '#F6F1FF' }}>To edit existing ones:</strong> download the current catalog, change the cells you want, upload it back — rows keep their hidden <em>id</em>, so only what you changed updates. Any row with a blank id is added as new.
+          </Typography>
+
+          <Box sx={{ display: 'flex', gap: 1.5, mb: 2, flexWrap: 'wrap' }}>
+            <Button sx={{ flex: 1, minWidth: 180, borderRadius: '14px', borderColor: 'rgba(255,255,255,0.2)', color: '#C4B5D4', fontWeight: 700, py: 1.2, '&:hover': { borderColor: '#D4AF37', color: '#D4AF37' } }}
+              variant="outlined" startIcon={<Download size={18} />} onClick={downloadTemplate}>
+              Blank Template
+            </Button>
+            <Button disabled={!products.length} sx={{ flex: 1, minWidth: 180, borderRadius: '14px', borderColor: 'rgba(255,255,255,0.2)', color: '#C4B5D4', fontWeight: 700, py: 1.2, '&:hover': { borderColor: '#D4AF37', color: '#D4AF37' } }}
+              variant="outlined" startIcon={<Download size={18} />} onClick={downloadCatalog}>
+              Current Catalog ({products.length})
+            </Button>
+          </Box>
+
+          <input ref={bulkInputRef} type="file" accept=".csv,.xlsx,.xls" hidden onChange={handleBulkFile} />
+          <Box onClick={() => !bulkBusy && bulkInputRef.current?.click()}
+            sx={{ cursor: bulkBusy ? 'default' : 'pointer', textAlign: 'center', p: 4, borderRadius: '16px', border: '2px dashed rgba(255,255,255,0.18)', bgcolor: 'rgba(255,255,255,0.03)', transition: 'all 0.2s ease', '&:hover': { borderColor: 'rgba(212,175,55,0.5)', bgcolor: 'rgba(212,175,55,0.05)' } }}>
+            {bulkBusy ? <CircularProgress size={26} sx={{ color: '#D4AF37' }} /> : <UploadCloud size={34} color="#D4AF37" />}
+            <Typography sx={{ color: '#F6F1FF', fontWeight: 700, mt: 1.2 }}>{bulkFileName || 'Click to choose a CSV / Excel file'}</Typography>
+            <Typography sx={{ color: '#8E7CAD', fontSize: '0.78rem', mt: 0.5 }}>.csv, .xlsx or .xls (max 500 products)</Typography>
+          </Box>
+
+          {bulkRows.length > 0 && !bulkError && (
+            <Box sx={{ mt: 2, p: 1.5, borderRadius: '14px', bgcolor: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', display: 'flex', alignItems: 'center', gap: 1.2 }}>
+              <CheckCircle2 size={20} color="#10b981" />
+              <Typography sx={{ color: '#F6F1FF', fontWeight: 700 }}>{bulkRows.length} product row(s) ready to import.</Typography>
+            </Box>
+          )}
+
+          {bulkError && (
+            <Box sx={{ mt: 2, p: 1.5, borderRadius: '14px', bgcolor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#ef4444', fontWeight: 700 }}><AlertTriangle size={18} /> {bulkError}</Box>
+              {bulkErrors.length > 0 && (
+                <Box component="ul" sx={{ mt: 1, mb: 0, pl: 3, color: '#F6F1FF', fontSize: '0.82rem', maxHeight: 180, overflowY: 'auto' }}>
+                  {bulkErrors.map((e, i) => <li key={i}>{e}</li>)}
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button disabled={bulkBusy} onClick={() => setBulkOpen(false)} sx={{ borderRadius: '12px', color: '#C4B5D4', fontWeight: 700 }}>Cancel</Button>
+          <Button variant="contained" disabled={bulkBusy || !bulkRows.length} onClick={importBulk} startIcon={<UploadCloud size={18} />}
+            sx={{ borderRadius: '12px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, '&:hover': { bgcolor: '#E8C84A' }, '&.Mui-disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' } }}>
+            {bulkBusy ? 'Working…' : `Import ${bulkRows.length || ''} Products`}
           </Button>
         </DialogActions>
       </Dialog>

@@ -24,11 +24,14 @@ router.get('/summary/today', async (req, res) => {
     try {
         const day = new Date(Date.now() + 330 * 60000).toISOString().slice(0, 10);
         const start = new Date(`${day}T00:00:00+05:30`);
-        const real = { 'business.demo': { $ne: true } };
+        // Match the shop's current mode: in demo mode count demo bills (so testing shows numbers),
+        // in live mode count only real bills (demo test bills stay excluded).
+        const shop = await Business.findById('shop').lean();
+        const scope = shop?.demo === true ? { 'business.demo': true } : { 'business.demo': { $ne: true } };
         const [result, count, due] = await Promise.all([
-            Invoice.aggregate([{ $match: { ...real, createdAt: { $gte: start } } }, { $group: { _id: null, total: { $sum: '$grandTotal' }, paid: { $sum: '$paidAmount' } } }]),
-            Invoice.countDocuments({ ...real, createdAt: { $gte: start } }),
-            Invoice.aggregate([{ $match: real }, { $group: { _id: null, total: { $sum: '$dueAmount' } } }]),
+            Invoice.aggregate([{ $match: { ...scope, createdAt: { $gte: start } } }, { $group: { _id: null, total: { $sum: '$grandTotal' }, paid: { $sum: '$paidAmount' } } }]),
+            Invoice.countDocuments({ ...scope, createdAt: { $gte: start } }),
+            Invoice.aggregate([{ $match: scope }, { $group: { _id: null, total: { $sum: '$dueAmount' } } }]),
         ]);
         res.json({ sales: result[0]?.total || 0, collected: result[0]?.paid || 0, invoiceCount: count, totalDue: due[0]?.total || 0 });
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -45,7 +48,10 @@ router.post('/', async (req, res) => {
         if (existing) { invoice = existing; return; }
         const business = await Business.findById('shop').session(session).lean();
         if (!business?.gstin) throw new Error('Complete Shop GST Settings before billing.');
-        if (!/^\d{2}$/.test(req.body.placeOfSupply || '') || !req.body.placeOfSupplyName?.trim()) throw new Error('Select the place of supply state and code.');
+        // Place of supply is optional on the form — blank means a local sale, so fall back to the shop's own state.
+        const placeOfSupply = String(req.body.placeOfSupply || '').trim() || business.stateCode || '';
+        const placeOfSupplyName = String(req.body.placeOfSupplyName || '').trim() || business.stateName || '';
+        if (!/^\d{2}$/.test(placeOfSupply) || !placeOfSupplyName) throw new Error('Set your shop state in Shop GST Settings, or enter the place of supply.');
         const customerGstin = String(req.body.customerGstin || '').trim().toUpperCase();
         if (customerGstin && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(customerGstin)) throw new Error('Invalid customer GSTIN.');
         if (!customerName?.trim() || !customerAddress?.trim()) throw new Error('Customer name and address are required for this invoice.');
@@ -66,16 +72,17 @@ router.post('/', async (req, res) => {
             if (product.trackStock && product.stockQuantity < quantity) throw new Error(`Only ${product.stockQuantity} ${product.unit} of ${product.name} available.`);
         }
 
+        // Tax is shop-wide: one GST rate, one HSN and one tax-inclusive flag for every line.
+        const gstRate = Number(business.gstRate || 0);
+        if (!/^\d{4}(\d{2})?(\d{2})?$/.test(business.hsn || '')) throw new Error('Set a valid overall HSN in Shop GST Settings.');
         const rawItems = items.map((item) => {
             const product = productMap.get(String(item.productId));
             const quantity = Number(item.quantity);
             const rate = Number(product.discountedPrice || product.price);
-            const gstRate = Number(product.gstRate || 0);
-            if (!/^\d{4}(\d{2})?(\d{2})?$/.test(product.hsn || '')) throw new Error(`Set a valid HSN for ${product.name} in Catalog.`);
-            return { product: product._id, name: product.name, sku: product.sku, hsn: product.hsn, unit: product.unit, quantity, rate, gstRate, priceIncludesTax: !!product.priceIncludesTax };
+            return { product: product._id, name: product.name, tamilName: product.description || '', mrp: Number(product.price), sku: product.sku, hsn: business.hsn, unit: product.unit, quantity, rate, gstRate, priceIncludesTax: !!business.priceIncludesTax };
         });
         const { calculate } = await import('../../shared/gst.mjs');
-        const calculation = calculate(rawItems, Number(discountAmount), req.body.placeOfSupply !== business.stateCode);
+        const calculation = calculate(rawItems, Number(discountAmount), placeOfSupply !== business.stateCode);
         const { items: savedItems, subtotal, gstAmount, grandTotal, discountAmount: safeDiscount } = calculation;
         const safePaid = money(Math.min(grandTotal, Math.max(0, Number(paidAmount ?? grandTotal) || 0)));
         if (paidAmount !== undefined && (!Number.isFinite(Number(paidAmount)) || Number(paidAmount) < 0 || Number(paidAmount) > grandTotal)) throw new Error('Paid amount must be between zero and bill total.');
@@ -87,13 +94,13 @@ router.post('/', async (req, res) => {
         const counter = await Counter.findByIdAndUpdate(`${prefix}-${year}`, { $inc: { value: 1 } }, { upsert: true, new: true, session });
         if (counter.value > 9999999) throw new Error('Invoice sequence exhausted.');
         [invoice] = await Invoice.create([{
-            business, customerGstin, placeOfSupply: req.body.placeOfSupply, placeOfSupplyName: req.body.placeOfSupplyName,
+            business, customerGstin, placeOfSupply, placeOfSupplyName,
             taxableAmount: calculation.taxableAmount, cgstAmount: calculation.cgstAmount, sgstAmount: calculation.sgstAmount, igstAmount: calculation.igstAmount,
             requestId: req.body.requestId,
             invoiceNumber: `${prefix}${year}-${String(counter.value).padStart(7, '0')}`,
             payments: safePaid > 0 ? [{ requestId: req.body.requestId, amount: safePaid, method: paymentMethod }] : [],
-            customerName: customerName?.trim() || 'Walk-in Customer', customerPhone: customerPhone?.trim() || '', customerAddress: customerAddress?.trim() || '',
-            items: savedItems, subtotal, gstAmount, discountAmount: safeDiscount, grandTotal, paidAmount: safePaid, dueAmount, paymentMethod, status, createdBy: req.admin.id,
+            customerName: customerName?.trim() || 'Walk-in Customer', customerPhone: customerPhone?.trim() || '', customerAltPhone: String(req.body.customerAltPhone || '').trim(), customerAddress: customerAddress?.trim() || '', customerPincode: String(req.body.customerPincode || '').trim(),
+            items: savedItems, subtotal, gstAmount, discountAmount: safeDiscount, grandTotal, paidAmount: safePaid, dueAmount, paymentMethod, note: String(req.body.note || '').trim(), status, createdBy: req.admin.id,
         }], { session });
         for (const p of products.filter((p) => p.trackStock && !business.demo)) {
             const quantity = quantities.get(String(p._id));
