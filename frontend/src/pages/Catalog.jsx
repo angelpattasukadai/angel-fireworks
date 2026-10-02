@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Box, Chip, Skeleton, TextField, InputAdornment, Divider, Select, MenuItem, FormControl } from '@mui/material';
+import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Box, Chip, Skeleton, TextField, InputAdornment, Divider, Select, MenuItem, FormControl, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
 import { Plus, Search, ImageOff, Minus, ShoppingBag, Check, Download, Trash2, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import axios from 'axios';
@@ -48,6 +48,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
   const [quantities, setQuantities] = useState({});
   const [imgErrors, setImgErrors] = useState({});
   const [visibleCount, setVisibleCount] = useState(24); // render in batches for speed
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   // Reset the batch when the filters change.
   useEffect(() => { setVisibleCount(24); }, [searchTerm, selectedCategory]);
@@ -94,46 +95,104 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
   };
 
   // Opens a clean, print-ready price list of all products (customer can Save as PDF or print).
-  const downloadPriceList = () => {
-    if (!products.length) return;
-    const byCat = {};
-    products.forEach((p) => { const c = p.category || 'Others'; (byCat[c] = byCat[c] || []).push(p); });
-    let sno = 0, rows = '';
-    Object.keys(byCat).sort().forEach((cat) => {
-      rows += `<tr class="cat"><td colspan="4">${cat}</td></tr>`;
-      byCat[cat].forEach((p) => {
-        sno++;
-        const offer = p.discountedPrice || p.price;
-        rows += `<tr><td class="c">${sno}</td><td>${p.name || ''}${p.description ? `<div class="ta">${p.description}</div>` : ''}</td><td class="r mrp">₹${p.price}</td><td class="r off">₹${offer}</td></tr>`;
+  // Downloads the price list as a real PDF file (no print dialog). We render the
+  // list to an off-screen DOM and capture it with html2canvas so Tamil names
+  // display correctly (a plain PDF font can't shape Tamil), then paginate into A4.
+  const downloadPriceList = async () => {
+    if (!products.length || pdfLoading) return;
+    setPdfLoading(true);
+    try {
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas'),
+      ]);
+      const esc = (s) => String(s || '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+      // Group by category and flatten into rows (category headers + items).
+      const byCat = {};
+      products.forEach((p) => { const c = p.category || 'Others'; (byCat[c] = byCat[c] || []).push(p); });
+      const flat = [];
+      let sno = 0;
+      Object.keys(byCat).sort().forEach((cat) => {
+        flat.push({ type: 'cat', cat });
+        byCat[cat].forEach((p) => { sno++; flat.push({ type: 'item', sno, p }); });
       });
-    });
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Angel Fireworks Price List</title>
-      <style>
-        *{font-family:Arial,Helvetica,sans-serif}
-        body{margin:24px;color:#111}
-        h1{color:#B8860B;margin:0 0 2px;font-size:22px}
-        .sub{color:#555;font-size:12px;margin-bottom:14px}
-        table{width:100%;border-collapse:collapse;font-size:12px}
-        th,td{border:1px solid #ddd;padding:6px 8px}
-        th{background:#1A0B30;color:#fff;text-align:left}
-        td.r{text-align:right}td.c{text-align:center;width:36px}
-        tr.cat td{background:#f3e9c6;font-weight:bold;color:#1A0B30}
-        .ta{color:#666;font-size:11px}
-        .mrp{text-decoration:line-through;color:#999}
-        .off{color:#B8860B;font-weight:bold}
-        @media print{body{margin:10px}}
-      </style></head>
-      <body>
-        <h1>M/S Angel Pattasu Kadai — Price List</h1>
-        <div class="sub">Gold Bird Brand &middot; angelpattasukadai.in &middot; ${new Date().toLocaleDateString('en-IN')}</div>
-        <table><thead><tr><th>#</th><th>Item</th><th>MRP</th><th>Offer Price</th></tr></thead><tbody>${rows}</tbody></table>
-      </body></html>`;
-    const w = window.open('', '_blank');
-    if (!w) { alert('Please allow pop-ups to download the price list.'); return; }
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => { try { w.print(); } catch (e) {} }, 500);
+
+      // Split into page-sized chunks so each capture stays small (reliable on mobile).
+      const PER = 24;
+      const pages = [];
+      for (let i = 0; i < flat.length; i += PER) pages.push(flat.slice(i, i + PER));
+
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const today = new Date().toLocaleDateString('en-IN');
+
+      for (let pi = 0; pi < pages.length; pi++) {
+        const rowsHtml = pages[pi].map((r) => {
+          if (r.type === 'cat') return `<tr><td colspan="4" class="cat">${esc(r.cat)}</td></tr>`;
+          const offer = r.p.discountedPrice || r.p.price;
+          return `<tr>
+            <td class="c">${r.sno}</td>
+            <td>${esc(r.p.name)}${r.p.description ? `<div class="ta">${esc(r.p.description)}</div>` : ''}</td>
+            <td class="r mrp">₹${r.p.price}</td>
+            <td class="r off">₹${offer}</td>
+          </tr>`;
+        }).join('');
+
+        const el = document.createElement('div');
+        el.id = 'angel-pl';
+        el.style.cssText = 'position:fixed;left:-99999px;top:0;width:760px;background:#fff;padding:22px;box-sizing:border-box';
+        el.innerHTML = `
+          <style>
+            #angel-pl *{font-family:Arial,Helvetica,sans-serif;margin:0;box-sizing:border-box}
+            #angel-pl .head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #D4AF37;padding-bottom:8px;margin-bottom:12px}
+            #angel-pl .brand{color:#B8860B;font-size:21px;font-weight:bold}
+            #angel-pl .tag{color:#555;font-size:11px;margin-top:2px}
+            #angel-pl .meta{text-align:right;font-size:11px;color:#555;line-height:1.5}
+            #angel-pl table{width:100%;border-collapse:collapse;font-size:12px}
+            #angel-pl th{background:#1A0B30;color:#fff;padding:7px 8px;border:1px solid #2a1150;text-align:left}
+            #angel-pl td{border:1px solid #e0e0e0;padding:6px 8px;vertical-align:top}
+            #angel-pl td.c{text-align:center;width:34px;color:#555}
+            #angel-pl td.r{text-align:right;white-space:nowrap}
+            #angel-pl td.cat{background:#f3e9c6;font-weight:bold;color:#1A0B30}
+            #angel-pl .ta{color:#777;font-size:11px;margin-top:2px}
+            #angel-pl .mrp{text-decoration:line-through;color:#999}
+            #angel-pl .off{color:#B8860B;font-weight:bold}
+          </style>
+          <div class="head">
+            <div>
+              <div class="brand">M/S Angel Pattasu Kadai</div>
+              <div class="tag">Gold Bird Brand &middot; angelpattasukadai.in &middot; 80% Off on Selected Products</div>
+            </div>
+            <div class="meta">Price List 2026<br>${today}<br>Page ${pi + 1} / ${pages.length}</div>
+          </div>
+          <table>
+            <thead><tr><th>#</th><th>Item</th><th>MRP</th><th>Offer</th></tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>`;
+        document.body.appendChild(el);
+
+        // eslint-disable-next-line no-await-in-loop
+        const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+        document.body.removeChild(el);
+
+        // Fit the captured page inside the A4 printable area (keeps aspect ratio).
+        let w = pageW - margin * 2;
+        let h = (w * canvas.height) / canvas.width;
+        if (h > pageH - margin * 2) { h = pageH - margin * 2; w = (h * canvas.width) / canvas.height; }
+        const x = (pageW - w) / 2;
+        if (pi > 0) pdf.addPage();
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', x, margin, w, h);
+      }
+
+      pdf.save('Angel-Pattasu-Kadai-Price-List.pdf');
+    } catch (e) {
+      alert('Sorry, could not create the PDF. Please try again.');
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   return (
@@ -151,9 +210,10 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
             <Typography sx={{ color: '#A99BC9', fontSize: '1.05rem', maxWidth: 550 }}>
               Browse our premium selection of Angel's Gold Bird Brand fireworks — up to 80% off factory direct.
             </Typography>
-            <Button onClick={downloadPriceList} variant="contained" startIcon={<Download size={18} />}
-              sx={{ mt: 3, borderRadius: '14px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, px: 3, py: 1.2, textTransform: 'none', '&:hover': { bgcolor: '#E8C84A' } }}>
-              Download Price List
+            <Button onClick={downloadPriceList} disabled={pdfLoading} variant="contained"
+              startIcon={pdfLoading ? <CircularProgress size={17} sx={{ color: '#1A0B30' }} /> : <Download size={18} />}
+              sx={{ mt: 3, borderRadius: '14px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, px: 3, py: 1.2, textTransform: 'none', '&:hover': { bgcolor: '#E8C84A' }, '&.Mui-disabled': { bgcolor: 'rgba(212,175,55,0.6)', color: '#1A0B30' } }}>
+              {pdfLoading ? 'Preparing PDF…' : 'Download Price List'}
             </Button>
           </motion.div>
         </Container>
