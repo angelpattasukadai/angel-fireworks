@@ -34,6 +34,10 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [quantities, setQuantities] = useState({});
   const [imgErrors, setImgErrors] = useState({});
+  const [visibleCount, setVisibleCount] = useState(24); // render in batches for speed
+
+  // Reset the batch when the filters change.
+  useEffect(() => { setVisibleCount(24); }, [searchTerm, selectedCategory]);
 
   useEffect(() => {
     axios.get(apiUrl('/api/products'))
@@ -201,13 +205,13 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
               </Box>
             </Grid>
           ) : (
-            filtered.map((product, index) => {
+            filtered.slice(0, visibleCount).map((product) => {
               const hasImage = product.image && !imgErrors[product._id];
               const discountPercent = product.discountedPrice ? Math.round((1 - product.discountedPrice / product.price) * 100) : null;
 
               return (
                 <Grid item xs={6} sm={6} md={4} lg={3} key={product._id}>
-                  <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={index} variants={fadeUp} style={{ height: '100%' }}>
+                  <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '0px 0px -40px 0px' }} transition={{ duration: 0.3 }} style={{ height: '100%' }}>
                     <Card className="glass-card" sx={{ height: '100%', display: 'flex', flexDirection: 'column', borderRadius: '24px', overflow: 'hidden', position: 'relative' }}>
                       
                       {/* Image Area */}
@@ -335,6 +339,15 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
             })
           )}
         </Grid>
+
+        {!loading && filtered.length > visibleCount && (
+          <Box sx={{ textAlign: 'center', mt: 5 }}>
+            <Button onClick={() => setVisibleCount((c) => c + 24)} variant="outlined"
+              sx={{ borderRadius: '50px', px: 4, py: 1.3, fontWeight: 700, borderColor: 'rgba(212,175,55,0.4)', color: '#D4AF37', '&:hover': { borderColor: '#D4AF37', bgcolor: 'rgba(212,175,55,0.08)' } }}>
+              Load More ({filtered.length - visibleCount} more)
+            </Button>
+          </Box>
+        )}
       </Container>
     </Box>
   );

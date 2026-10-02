@@ -77,3 +77,13 @@ app.get('/api/health', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+// Keep the free Render instance warm so customers don't hit a ~50s cold start.
+// Pings its own public health URL every 14 min (Render sleeps after 15 min idle).
+const SELF_URL = process.env.RENDER_EXTERNAL_URL;
+if (SELF_URL) {
+    setInterval(() => {
+        fetch(`${SELF_URL}/api/health`).catch(() => {});
+    }, 14 * 60 * 1000);
+    console.log('Keep-alive self-ping enabled:', SELF_URL);
+}
