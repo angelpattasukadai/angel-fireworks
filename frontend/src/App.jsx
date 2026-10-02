@@ -59,7 +59,7 @@ function App() {
         <Box component="main" sx={{ flexGrow: 1, pt: '80px' }}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/catalog" element={<Catalog addToCart={addToCart} cart={cart} />} />
+            <Route path="/catalog" element={<Catalog addToCart={addToCart} cart={cart} updateCartQuantity={updateCartQuantity} removeFromCart={removeFromCart} />} />
             <Route path="/about" element={<About />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/wholesale" element={<Wholesale />} />

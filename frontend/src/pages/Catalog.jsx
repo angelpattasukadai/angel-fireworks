@@ -27,7 +27,7 @@ const NoImagePlaceholder = () => (
   </Box>
 );
 
-const Catalog = ({ addToCart, cart = [] }) => {
+const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,14 +60,17 @@ const Catalog = ({ addToCart, cart = [] }) => {
     .filter(p => selectedStock === 'All' || (selectedStock === 'in' ? p.inStock : !p.inStock))
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const getQuantity = (id) => quantities[id] ?? 1; // raw value (may be '' while typing)
-  const qtyNum = (id) => Math.min(999, Math.max(1, parseInt(quantities[id], 10) || 1)); // always a valid number
-  const setQuantity = (id, val) => {
-    if (val < 1) val = 1;
-    if (val > 999) val = 999;
-    setQuantities({ ...quantities, [id]: val });
+  const cartItem = (id) => cart.find((item) => item.product._id === id);
+  const isInCart = (id) => !!cartItem(id);
+  const clampQ = (n) => Math.min(999, Math.max(1, parseInt(n, 10) || 1));
+  // Displayed qty follows the cart once the item is added, else the local selector.
+  const displayQty = (id) => { const c = cartItem(id); return c ? c.quantity : (quantities[id] ?? 1); };
+  // Changing qty edits the cart live when in cart (keeps checkout in sync), else the local selector.
+  const changeQty = (id, val) => {
+    const n = clampQ(val);
+    if (cartItem(id)) updateCartQuantity(id, n);
+    else setQuantities({ ...quantities, [id]: n });
   };
-  const isInCart = (id) => cart.some((item) => item.product._id === id);
 
   const handleImageError = (id) => {
     setImgErrors(prev => ({ ...prev, [id]: true }));
@@ -249,41 +252,41 @@ const Catalog = ({ addToCart, cart = [] }) => {
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' } }}>
                           {/* Quantity Selector */}
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden', width: { xs: '100%', sm: 'auto' } }}>
-                            <Button size="small" onClick={() => setQuantity(product._id, qtyNum(product._id) - 1)} sx={{ minWidth: 42, px: 0, py: 0.6, color: '#A99BC9' }}>
+                            <Button size="small" onClick={() => changeQty(product._id, clampQ(displayQty(product._id)) - 1)} sx={{ minWidth: 42, px: 0, py: 0.6, color: '#A99BC9' }}>
                               <Minus size={16} />
                             </Button>
                             <Box
                               component="input"
                               type="number"
-                              value={getQuantity(product._id)}
+                              value={displayQty(product._id)}
                               onChange={(e) => {
                                 const raw = e.target.value;
-                                if (raw === '') { setQuantities({ ...quantities, [product._id]: '' }); return; }
+                                if (raw === '') { if (!isInCart(product._id)) setQuantities({ ...quantities, [product._id]: '' }); return; }
                                 const n = parseInt(raw, 10);
-                                if (!isNaN(n)) setQuantities({ ...quantities, [product._id]: Math.min(999, Math.max(1, n)) });
+                                if (!isNaN(n)) changeQty(product._id, n);
                               }}
-                              onBlur={(e) => { if (e.target.value === '' || parseInt(e.target.value, 10) < 1) setQuantity(product._id, 1); }}
+                              onBlur={(e) => { if (!isInCart(product._id) && (e.target.value === '' || parseInt(e.target.value, 10) < 1)) setQuantities({ ...quantities, [product._id]: 1 }); }}
                               sx={{
                                 width: 46, textAlign: 'center', fontWeight: 700, fontSize: '0.9rem', color: '#F6F1FF',
                                 bgcolor: 'transparent', border: 'none', outline: 'none', fontFamily: 'inherit', MozAppearance: 'textfield',
                                 '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
                               }}
                             />
-                            <Button size="small" onClick={() => setQuantity(product._id, qtyNum(product._id) + 1)} sx={{ minWidth: 42, px: 0, py: 0.6, color: '#A99BC9' }}>
+                            <Button size="small" onClick={() => changeQty(product._id, clampQ(displayQty(product._id)) + 1)} sx={{ minWidth: 42, px: 0, py: 0.6, color: '#A99BC9' }}>
                               <Plus size={16} />
                             </Button>
                           </Box>
 
-                          {/* Add Button — turns green once the product is in the cart */}
+                          {/* Add Button — green "Added" once in cart; qty controls above then edit the cart live. Tap again to remove. */}
                           <motion.div whileTap={{ scale: 0.95 }} style={{ flexGrow: 1, width: '100%' }}>
                             <Button
                               variant="contained" fullWidth
                               startIcon={isInCart(product._id) ? <Check size={16} /> : <ShoppingBag size={15} />}
                               disabled={!product.inStock}
-                              onClick={() => addToCart(product, qtyNum(product._id))}
+                              onClick={() => { if (isInCart(product._id)) removeFromCart(product._id); else addToCart(product, clampQ(displayQty(product._id))); }}
                               sx={{
                                 bgcolor: isInCart(product._id) ? '#10b981' : '#111', color: '#fff', borderRadius: '12px', py: 1, fontWeight: 700, fontSize: '0.8rem',
-                                '&:hover': { bgcolor: isInCart(product._id) ? '#0ea371' : '#D4AF37', color: isInCart(product._id) ? '#fff' : '#000' },
+                                '&:hover': { bgcolor: isInCart(product._id) ? '#ef4444' : '#D4AF37', color: isInCart(product._id) ? '#fff' : '#000' },
                                 '&:disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' },
                                 transition: 'all 0.3s'
                               }}
