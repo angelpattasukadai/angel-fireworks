@@ -66,7 +66,7 @@ const Navbar = ({ cartCount }) => {
             {/* WhatsApp phone — desktop */}
             <Button component="a" href={`https://wa.me/${SHOP_WHATSAPP}`} target="_blank" rel="noopener"
               startIcon={<Phone size={16} />}
-              sx={{ display: { xs: 'none', lg: 'inline-flex' }, borderRadius: '50px', px: 2.2, py: 0.8, fontWeight: 800, fontSize: '0.85rem', color: '#25D366', border: '1.5px solid rgba(37,211,102,0.5)', bgcolor: 'rgba(37,211,102,0.08)', whiteSpace: 'nowrap', '&:hover': { bgcolor: 'rgba(37,211,102,0.16)', borderColor: '#25D366' } }}>
+              sx={{ display: { xs: 'none', md: 'inline-flex' }, borderRadius: '50px', px: { md: 1.6, lg: 2.2 }, py: 0.8, fontWeight: 800, fontSize: { md: '0.78rem', lg: '0.85rem' }, color: '#25D366', border: '1.5px solid rgba(37,211,102,0.5)', bgcolor: 'rgba(37,211,102,0.08)', whiteSpace: 'nowrap', '&:hover': { bgcolor: 'rgba(37,211,102,0.16)', borderColor: '#25D366' } }}>
               {SHOP_NUMBER_DISPLAY}
             </Button>
 
