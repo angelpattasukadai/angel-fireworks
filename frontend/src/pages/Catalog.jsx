@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Box, Chip, Skeleton, TextField, InputAdornment, Divider } from '@mui/material';
 import { motion } from 'framer-motion';
-import { Plus, Search, ImageOff, Minus, ShoppingBag, Check } from 'lucide-react';
+import { Plus, Search, ImageOff, Minus, ShoppingBag, Check, Download } from 'lucide-react';
 import axios from 'axios';
 import { apiUrl, imgUrl } from '../config';
 
@@ -74,6 +74,49 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
     setImgErrors(prev => ({ ...prev, [id]: true }));
   };
 
+  // Opens a clean, print-ready price list of all products (customer can Save as PDF or print).
+  const downloadPriceList = () => {
+    if (!products.length) return;
+    const byCat = {};
+    products.forEach((p) => { const c = p.category || 'Others'; (byCat[c] = byCat[c] || []).push(p); });
+    let sno = 0, rows = '';
+    Object.keys(byCat).sort().forEach((cat) => {
+      rows += `<tr class="cat"><td colspan="4">${cat}</td></tr>`;
+      byCat[cat].forEach((p) => {
+        sno++;
+        const offer = p.discountedPrice || p.price;
+        rows += `<tr><td class="c">${sno}</td><td>${p.name || ''}${p.description ? `<div class="ta">${p.description}</div>` : ''}</td><td class="r mrp">₹${p.price}</td><td class="r off">₹${offer}</td></tr>`;
+      });
+    });
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Angel Fireworks Price List</title>
+      <style>
+        *{font-family:Arial,Helvetica,sans-serif}
+        body{margin:24px;color:#111}
+        h1{color:#B8860B;margin:0 0 2px;font-size:22px}
+        .sub{color:#555;font-size:12px;margin-bottom:14px}
+        table{width:100%;border-collapse:collapse;font-size:12px}
+        th,td{border:1px solid #ddd;padding:6px 8px}
+        th{background:#1A0B30;color:#fff;text-align:left}
+        td.r{text-align:right}td.c{text-align:center;width:36px}
+        tr.cat td{background:#f3e9c6;font-weight:bold;color:#1A0B30}
+        .ta{color:#666;font-size:11px}
+        .mrp{text-decoration:line-through;color:#999}
+        .off{color:#B8860B;font-weight:bold}
+        @media print{body{margin:10px}}
+      </style></head>
+      <body>
+        <h1>M/S Angel Pattasu Kadai — Price List</h1>
+        <div class="sub">Gold Bird Brand &middot; angelpattasukadai.in &middot; ${new Date().toLocaleDateString('en-IN')}</div>
+        <table><thead><tr><th>#</th><th>Item</th><th>MRP</th><th>Offer Price</th></tr></thead><tbody>${rows}</tbody></table>
+      </body></html>`;
+    const w = window.open('', '_blank');
+    if (!w) { alert('Please allow pop-ups to download the price list.'); return; }
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { try { w.print(); } catch (e) {} }, 500);
+  };
+
   return (
     <Box sx={{ minHeight: '100vh' }}>
       {/* ────────────────── PAGE HEADER ────────────────── */}
@@ -87,6 +130,10 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
             <Typography sx={{ color: '#A99BC9', fontSize: '1.05rem', maxWidth: 550 }}>
               Browse our premium selection of Angel's Gold Bird Brand fireworks — up to 80% off factory direct.
             </Typography>
+            <Button onClick={downloadPriceList} variant="contained" startIcon={<Download size={18} />}
+              sx={{ mt: 3, borderRadius: '14px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, px: 3, py: 1.2, textTransform: 'none', '&:hover': { bgcolor: '#E8C84A' } }}>
+              Download Price List
+            </Button>
           </motion.div>
         </Container>
       </Box>
