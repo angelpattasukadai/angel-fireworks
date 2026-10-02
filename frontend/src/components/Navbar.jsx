@@ -3,7 +3,7 @@ import { AppBar, Toolbar, Typography, Button, Box, Badge, Container, IconButton,
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingBag, Menu as MenuIcon, X, Phone, ShieldCheck, Truck, BadgePercent } from 'lucide-react';
 import { motion } from 'framer-motion';
-import navLogo from '../assets/nav-logo.png';
+import navLogo from '../assets/logo1.png';
 
 const navLinks = [
   { label: 'Home', path: '/' },
