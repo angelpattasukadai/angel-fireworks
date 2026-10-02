@@ -82,7 +82,7 @@ const Navbar = ({ cartCount }) => {
 
             {/* Enquire Now — sm+ */}
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} style={{ display: 'inline-flex' }}>
-              <Button variant="contained" color="primary" onClick={() => navigate('/checkout')}
+              <Button variant="contained" color="primary" onClick={() => navigate(cartCount > 0 ? '/checkout' : '/catalog')}
                 sx={{ display: { xs: 'none', sm: 'inline-flex' }, borderRadius: '50px', px: 3, py: 1, fontWeight: 700, color: '#fff', fontSize: '0.85rem', whiteSpace: 'nowrap', boxShadow: '0 4px 14px rgba(212,175,55,0.35)', '&:hover': { boxShadow: '0 6px 20px rgba(212,175,55,0.45)' } }}>
                 Enquire Now
               </Button>
@@ -133,7 +133,7 @@ const Navbar = ({ cartCount }) => {
               <ListItemText primary={link.label} primaryTypographyProps={{ fontWeight: isActive(link.path) ? 800 : 600, color: isActive(link.path) ? '#1A0B30' : '#F6F1FF' }} />
             </ListItemButton>
           ))}
-          <ListItemButton component={Link} to="/checkout" onClick={() => setOpen(false)}
+          <ListItemButton component={Link} to={cartCount > 0 ? '/checkout' : '/catalog'} onClick={() => setOpen(false)}
             sx={{ borderRadius: '12px', mt: 1, py: 1.3, bgcolor: 'rgba(212,175,55,0.14)', '&:hover': { bgcolor: 'rgba(212,175,55,0.22)' } }}>
             <ShoppingBag size={18} color="#D4AF37" style={{ marginRight: 12 }} />
             <ListItemText primary={`Enquire Now${cartCount ? ` (${cartCount})` : ''}`} primaryTypographyProps={{ fontWeight: 800, color: '#D4AF37' }} />
