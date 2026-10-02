@@ -32,15 +32,17 @@ const Navbar = ({ cartCount }) => {
   return (
     <AppBar position="fixed" elevation={0}>
       <Container maxWidth="xl">
-        <Toolbar disableGutters sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, minHeight: { xs: 60, md: 70 } }}>
+        <Toolbar disableGutters sx={{ display: 'flex', alignItems: 'center', gap: 1, minHeight: { xs: 60, md: 70 } }}>
 
-          {/* Logo */}
-          <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit', flexShrink: 0 }}>
-            <Box component="img" src={logo2} alt="Angel Fireworks" sx={{ height: { xs: 34, md: 46 }, objectFit: 'contain', borderRadius: '6px' }} />
+          {/* Left: Logo (flex:1 keeps the nav links centred) */}
+          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', minWidth: 0 }}>
+            <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
+              <Box component="img" src={logo2} alt="Angel Fireworks" sx={{ height: { xs: 34, md: 46 }, objectFit: 'contain', borderRadius: '6px' }} />
+            </Box>
           </Box>
 
-          {/* Desktop nav links */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, bgcolor: 'rgba(255,255,255,0.05)', borderRadius: '50px', p: 0.5 }}>
+          {/* Center: nav links */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, bgcolor: 'rgba(255,255,255,0.05)', borderRadius: '50px', p: 0.5, flexShrink: 0 }}>
             {navLinks.map((link) => (
               <Button
                 key={link.path}
@@ -61,38 +63,32 @@ const Navbar = ({ cartCount }) => {
             ))}
           </Box>
 
-          {/* Right side */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-            {/* WhatsApp phone — desktop */}
+          {/* Right: actions (flex:1, right-aligned) */}
+          <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
+            {/* WhatsApp phone — md+ */}
             <Button component="a" href={`https://wa.me/${SHOP_WHATSAPP}`} target="_blank" rel="noopener"
               startIcon={<Phone size={16} />}
               sx={{ display: { xs: 'none', md: 'inline-flex' }, borderRadius: '50px', px: { md: 1.6, lg: 2.2 }, py: 0.8, fontWeight: 800, fontSize: { md: '0.78rem', lg: '0.85rem' }, color: '#25D366', border: '1.5px solid rgba(37,211,102,0.5)', bgcolor: 'rgba(37,211,102,0.08)', whiteSpace: 'nowrap', '&:hover': { bgcolor: 'rgba(37,211,102,0.16)', borderColor: '#25D366' } }}>
               {SHOP_NUMBER_DISPLAY}
             </Button>
 
-            {/* Checkout / Enquiry */}
-            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Button
-                variant="contained" color="primary"
-                startIcon={
-                  <Badge badgeContent={cartCount} color="error" sx={{ '& .MuiBadge-badge': { fontSize: '0.7rem', minWidth: 18, height: 18 } }}>
-                    <ShoppingBag size={18} />
-                  </Badge>
-                }
-                onClick={() => navigate('/checkout')}
-                sx={{
-                  borderRadius: '50px', px: { xs: 2, md: 3 }, py: 1, fontWeight: 700, color: '#fff',
-                  fontSize: '0.85rem', whiteSpace: 'nowrap',
-                  boxShadow: '0 4px 14px rgba(212,175,55,0.35)',
-                  '&:hover': { boxShadow: '0 6px 20px rgba(212,175,55,0.45)' },
-                  '& .MuiButton-startIcon': { mr: { xs: 0, sm: 1 } },
-                }}
-              >
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Enquire Now</Box>
+            {/* Cart icon with count */}
+            <IconButton onClick={() => navigate('/checkout')} aria-label="View cart"
+              sx={{ color: '#F6F1FF', bgcolor: 'rgba(255,255,255,0.06)', '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' } }}>
+              <Badge badgeContent={cartCount} color="error" sx={{ '& .MuiBadge-badge': { fontSize: '0.62rem', minWidth: 16, height: 16, px: 0.4 } }}>
+                <ShoppingBag size={20} />
+              </Badge>
+            </IconButton>
+
+            {/* Enquire Now — sm+ */}
+            <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} style={{ display: 'inline-flex' }}>
+              <Button variant="contained" color="primary" onClick={() => navigate('/checkout')}
+                sx={{ display: { xs: 'none', sm: 'inline-flex' }, borderRadius: '50px', px: 3, py: 1, fontWeight: 700, color: '#fff', fontSize: '0.85rem', whiteSpace: 'nowrap', boxShadow: '0 4px 14px rgba(212,175,55,0.35)', '&:hover': { boxShadow: '0 6px 20px rgba(212,175,55,0.45)' } }}>
+                Enquire Now
               </Button>
             </motion.div>
 
-            {/* Hamburger — mobile */}
+            {/* Hamburger — below md */}
             <IconButton onClick={() => setOpen(true)} sx={{ display: { xs: 'inline-flex', md: 'none' }, color: '#F6F1FF' }} aria-label="Open menu">
               <MenuIcon size={24} />
             </IconButton>
