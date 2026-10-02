@@ -56,7 +56,7 @@ function App() {
       <ScrollToTop />
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Navbar cartCount={cart.reduce((a, c) => a + c.quantity, 0)} />
-        <Box component="main" sx={{ flexGrow: 1, pt: '80px' }}>
+        <Box component="main" sx={{ flexGrow: 1, pt: { xs: '96px', md: '106px' } }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/catalog" element={<Catalog addToCart={addToCart} cart={cart} updateCartQuantity={updateCartQuantity} removeFromCart={removeFromCart} />} />
