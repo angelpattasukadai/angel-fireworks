@@ -189,23 +189,25 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
           </Box>
         </motion.div>
 
-        {/* Results Count */}
-        {!showingCombos && (
-          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ color: '#A99BC9', fontSize: '0.9rem' }}>
-              Showing <strong style={{ color: '#F6F1FF' }}>{filtered.length}</strong> products
-              {selectedCategory !== 'All' && <> in <Chip label={selectedCategory} size="small" sx={{ ml: 1, fontWeight: 600, bgcolor: 'rgba(212,175,55,0.1)', color: '#D4AF37' }} /></>}
-            </Typography>
-          </Box>
-        )}
       </Container>
 
-      {/* ────────────────── COMBO PACKS (shown when the Combo filter is selected) ────────────────── */}
-      {showingCombos && <ComboOffers addToCart={addToCart} cart={cart} />}
+      {/* ────────────────── COMBO PACKS ──────────────────
+          Shown on the default "All" view (compact, on top) and as the full
+          section when the "Combo Packs" filter is picked. */}
+      {(showingCombos || selectedCategory === 'All') && (
+        <ComboOffers addToCart={addToCart} cart={cart} compact={!showingCombos} />
+      )}
 
       {/* ────────────────── PRODUCTS GRID ────────────────── */}
       {!showingCombos && (
       <Container maxWidth="lg" sx={{ pb: 16 }}>
+        {/* Results Count */}
+        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography sx={{ color: '#A99BC9', fontSize: '0.9rem' }}>
+            Showing <strong style={{ color: '#F6F1FF' }}>{filtered.length}</strong> products
+            {selectedCategory !== 'All' && <> in <Chip label={selectedCategory} size="small" sx={{ ml: 1, fontWeight: 600, bgcolor: 'rgba(212,175,55,0.1)', color: '#D4AF37' }} /></>}
+          </Typography>
+        </Box>
         <Grid container spacing={3.5}>
           {loading ? (
             Array.from(new Array(8)).map((_, i) => (

@@ -9,7 +9,7 @@ import heroBanner from '../assets/hero-banner.jpg';
 import addPoster from '../assets/add.jpeg';
 import FireworksAnimation from '../components/FireworksAnimation';
 import LegalNotice from '../components/LegalNotice';
-import ComboOffers from '../components/ComboOffers';
+import ComboCarousel from '../components/ComboCarousel';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -143,6 +143,9 @@ const Home = ({ addToCart, cart }) => {
         </Container>
       </Box>
 
+      {/* ────────────────── COMBO PACK CAROUSEL (auto-rotating poster images) ────────────────── */}
+      <ComboCarousel addToCart={addToCart} cart={cart} />
+
       {/* ────────────────── TRUST STATS BAR ────────────────── */}
       <Box sx={{ py: 6, bgcolor: 'rgba(255,255,255,0.03)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <Container maxWidth="lg">
@@ -167,8 +170,6 @@ const Home = ({ addToCart, cart }) => {
         </Container>
       </Box>
 
-      {/* ────────────────── COMBO PACKS ────────────────── */}
-      <ComboOffers addToCart={addToCart} cart={cart} />
 
       {/* ────────────────── WHY CHOOSE US ────────────────── */}
       <Container maxWidth="lg" sx={{ py: { xs: 10, md: 16 } }}>

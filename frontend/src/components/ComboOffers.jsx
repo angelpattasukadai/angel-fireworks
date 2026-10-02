@@ -10,7 +10,7 @@ const fadeUp = {
   visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.12, duration: 0.55, ease: [0.4, 0, 0.2, 1] } }),
 };
 
-const ComboOffers = ({ addToCart, cart = [] }) => {
+const ComboOffers = ({ addToCart, cart = [], compact = false }) => {
   const navigate = useNavigate();
   const [viewing, setViewing] = useState(null); // combo being previewed in dialog
 
@@ -22,10 +22,10 @@ const ComboOffers = ({ addToCart, cart = [] }) => {
   };
 
   return (
-    <Box sx={{ py: { xs: 9, md: 14 }, position: 'relative' }}>
+    <Box sx={{ py: compact ? { xs: 2, md: 3 } : { xs: 9, md: 14 }, position: 'relative' }}>
       <Container maxWidth="lg">
         {/* Heading */}
-        <Box sx={{ textAlign: 'center', mb: { xs: 6, md: 9 } }}>
+        <Box sx={{ textAlign: 'center', mb: compact ? { xs: 4, md: 5 } : { xs: 6, md: 9 } }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={0} variants={fadeUp}>
             <Chip
               icon={<Gift size={16} color="#1A0B30" />}
