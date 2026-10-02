@@ -306,17 +306,18 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                             </Button>
                           </Box>
 
-                          {/* Add Button — full width on mobile, grows beside the stepper on desktop */}
+                          {/* Add Button — adds to cart; once added it's just a green confirmation (remove via the − / trash) */}
                           <Box sx={{ width: { xs: '100%', sm: 'auto' }, flexGrow: { xs: 0, sm: 1 } }}>
-                            <motion.div whileTap={{ scale: 0.95 }} style={{ width: '100%' }}>
+                            <motion.div whileTap={{ scale: isInCart(product._id) ? 1 : 0.95 }} style={{ width: '100%' }}>
                               <Button
-                                variant="contained" fullWidth
+                                variant="contained" fullWidth disableRipple={isInCart(product._id)}
                                 startIcon={isInCart(product._id) ? <Check size={16} /> : <ShoppingBag size={15} />}
                                 disabled={!product.inStock}
-                                onClick={() => { if (isInCart(product._id)) removeFromCart(product._id); else addToCart(product, clampQ(displayQty(product._id))); }}
+                                onClick={() => { if (!isInCart(product._id)) addToCart(product, clampQ(displayQty(product._id))); }}
                                 sx={{
                                   bgcolor: isInCart(product._id) ? '#10b981' : '#111', color: '#fff', borderRadius: '12px', py: 1, fontWeight: 700, fontSize: '0.8rem',
-                                  '&:hover': { bgcolor: isInCart(product._id) ? '#ef4444' : '#D4AF37', color: isInCart(product._id) ? '#fff' : '#000' },
+                                  cursor: isInCart(product._id) ? 'default' : 'pointer',
+                                  '&:hover': { bgcolor: isInCart(product._id) ? '#10b981' : '#D4AF37', color: isInCart(product._id) ? '#fff' : '#000' },
                                   '&:disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' },
                                   transition: 'all 0.3s'
                                 }}
