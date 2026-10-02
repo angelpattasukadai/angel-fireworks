@@ -251,7 +251,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                         {/* Quantity + Add Button — stack on mobile so the Add button isn't squeezed */}
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' } }}>
                           {/* Quantity Selector */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden', width: { xs: '100%', sm: 'auto' } }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden', width: 'fit-content', alignSelf: 'center' }}>
                             <Button size="small" onClick={() => changeQty(product._id, clampQ(displayQty(product._id)) - 1)} sx={{ minWidth: 42, px: 0, py: 0.6, color: '#A99BC9' }}>
                               <Minus size={16} />
                             </Button>
