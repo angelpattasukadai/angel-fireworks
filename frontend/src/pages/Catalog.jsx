@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Box, Chip, Skeleton, TextField, InputAdornment, Divider } from '@mui/material';
 import { motion } from 'framer-motion';
-import { Plus, Search, ImageOff, Minus, ShoppingBag, Check, Download } from 'lucide-react';
+import { Plus, Search, ImageOff, Minus, ShoppingBag, Check, Download, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { apiUrl, imgUrl } from '../config';
 
@@ -275,8 +275,14 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' } }}>
                           {/* Quantity Selector */}
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden', width: 'fit-content', alignSelf: 'center' }}>
-                            <Button size="small" onClick={() => changeQty(product._id, clampQ(displayQty(product._id)) - 1)} sx={{ minWidth: 42, px: 0, py: 0.6, color: '#A99BC9' }}>
-                              <Minus size={16} />
+                            <Button size="small"
+                              onClick={() => {
+                                const q = clampQ(displayQty(product._id));
+                                if (isInCart(product._id) && q <= 1) removeFromCart(product._id); // last one → remove from cart
+                                else changeQty(product._id, q - 1);
+                              }}
+                              sx={{ minWidth: 42, px: 0, py: 0.6, color: isInCart(product._id) && clampQ(displayQty(product._id)) <= 1 ? '#ef4444' : '#A99BC9' }}>
+                              {isInCart(product._id) && clampQ(displayQty(product._id)) <= 1 ? <Trash2 size={15} /> : <Minus size={16} />}
                             </Button>
                             <Box
                               component="input"
