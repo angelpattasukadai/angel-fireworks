@@ -129,49 +129,37 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
       const margin = 8;
       const today = new Date().toLocaleDateString('en-IN');
 
+      // Every colour is set with an INLINE style so nothing can be overridden by
+      // the app's dark theme (body color:#F6F1FF) via inheritance.
+      const FONT = "font-family:Arial,Helvetica,sans-serif";
+      const tdBase = `${FONT};border:1px solid #e0e0e0;padding:6px 8px;vertical-align:top;font-size:12px`;
+      const thBase = `${FONT};background:#1A0B30;color:#ffffff;padding:7px 8px;border:1px solid #2a1150;text-align:left;font-size:12px;font-weight:bold`;
+
       for (let pi = 0; pi < pages.length; pi++) {
         const rowsHtml = pages[pi].map((r) => {
-          if (r.type === 'cat') return `<tr><td colspan="4" class="cat">${esc(r.cat)}</td></tr>`;
+          if (r.type === 'cat') return `<tr><td colspan="4" style="${tdBase};background:#f3e9c6;font-weight:bold;color:#1A0B30">${esc(r.cat)}</td></tr>`;
           const offer = r.p.discountedPrice || r.p.price;
           return `<tr>
-            <td class="c">${r.sno}</td>
-            <td><span class="nm">${esc(r.p.name)}</span>${r.p.description ? `<div class="ta">${esc(r.p.description)}</div>` : ''}</td>
-            <td class="r mrp">₹${r.p.price}</td>
-            <td class="r off">₹${offer}</td>
+            <td style="${tdBase};text-align:center;width:34px;color:#555555">${r.sno}</td>
+            <td style="${tdBase}"><span style="${FONT};color:#1A0B30;font-weight:700;font-size:12px">${esc(r.p.name)}</span>${r.p.description ? `<div style="${FONT};color:#555555;font-size:11px;margin-top:2px">${esc(r.p.description)}</div>` : ''}</td>
+            <td style="${tdBase};text-align:right;white-space:nowrap;text-decoration:line-through;color:#999999">₹${r.p.price}</td>
+            <td style="${tdBase};text-align:right;white-space:nowrap;color:#B8860B;font-weight:bold">₹${offer}</td>
           </tr>`;
         }).join('');
 
         const el = document.createElement('div');
         el.id = 'angel-pl';
-        el.style.cssText = 'position:fixed;left:-99999px;top:0;width:760px;background:#fff;color:#1a1a1a;padding:22px;box-sizing:border-box';
+        el.style.cssText = 'position:fixed;left:-99999px;top:0;width:760px;background:#ffffff;color:#1a1a1a;padding:22px;box-sizing:border-box';
         el.innerHTML = `
-          <style>
-            #angel-pl *{font-family:Arial,Helvetica,sans-serif;margin:0;box-sizing:border-box;color:inherit}
-            #angel-pl td{color:#1a1a1a}
-            #angel-pl .nm{color:#1A0B30;font-weight:600}
-            #angel-pl .head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #D4AF37;padding-bottom:8px;margin-bottom:12px}
-            #angel-pl .brand{color:#B8860B;font-size:21px;font-weight:bold}
-            #angel-pl .tag{color:#555;font-size:11px;margin-top:2px}
-            #angel-pl .meta{text-align:right;font-size:11px;color:#555;line-height:1.5}
-            #angel-pl table{width:100%;border-collapse:collapse;font-size:12px}
-            #angel-pl th{background:#1A0B30;color:#fff;padding:7px 8px;border:1px solid #2a1150;text-align:left}
-            #angel-pl td{border:1px solid #e0e0e0;padding:6px 8px;vertical-align:top}
-            #angel-pl td.c{text-align:center;width:34px;color:#555}
-            #angel-pl td.r{text-align:right;white-space:nowrap}
-            #angel-pl td.cat{background:#f3e9c6;font-weight:bold;color:#1A0B30}
-            #angel-pl .ta{color:#777;font-size:11px;margin-top:2px}
-            #angel-pl .mrp{text-decoration:line-through;color:#999}
-            #angel-pl .off{color:#B8860B;font-weight:bold}
-          </style>
-          <div class="head">
+          <div style="${FONT};display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #D4AF37;padding-bottom:8px;margin-bottom:12px">
             <div>
-              <div class="brand">M/S Angel Pattasu Kadai</div>
-              <div class="tag">Gold Bird Brand &middot; angelpattasukadai.in &middot; 80% Off on Selected Products</div>
+              <div style="${FONT};color:#B8860B;font-size:21px;font-weight:bold">M/S Angel Pattasu Kadai</div>
+              <div style="${FONT};color:#555555;font-size:11px;margin-top:2px">Gold Bird Brand &middot; angelpattasukadai.in &middot; 80% Off on Selected Products</div>
             </div>
-            <div class="meta">Price List 2026<br>${today}<br>Page ${pi + 1} / ${pages.length}</div>
+            <div style="${FONT};text-align:right;font-size:11px;color:#555555;line-height:1.5">Price List 2026<br>${today}<br>Page ${pi + 1} / ${pages.length}</div>
           </div>
-          <table>
-            <thead><tr><th>#</th><th>Item</th><th>MRP</th><th>Offer</th></tr></thead>
+          <table style="${FONT};width:100%;border-collapse:collapse;font-size:12px">
+            <thead><tr><th style="${thBase};text-align:center;width:34px">#</th><th style="${thBase}">Item</th><th style="${thBase};text-align:right">MRP</th><th style="${thBase};text-align:right">Offer</th></tr></thead>
             <tbody>${rowsHtml}</tbody>
           </table>`;
         document.body.appendChild(el);
