@@ -96,15 +96,26 @@ const Navbar = ({ cartCount }) => {
         </Toolbar>
       </Container>
 
-      {/* Trust bar */}
-      <Box sx={{ background: 'linear-gradient(90deg, #D4AF37, #E8C84A)', color: '#1A0B30', height: 34, display: 'flex', alignItems: 'center' }}>
-        <Container maxWidth="xl" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: { xs: 2, md: 5 }, overflowX: 'auto', whiteSpace: 'nowrap', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
+      {/* Trust bar — static & centred on desktop, auto-scrolling marquee on mobile */}
+      <Box sx={{ background: 'linear-gradient(90deg, #D4AF37, #E8C84A)', color: '#1A0B30', height: 34, display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+        {/* Desktop */}
+        <Container maxWidth="xl" sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center', gap: 5 }}>
           {trustBadges.map((b, i) => (
-            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.7, fontWeight: 700, fontSize: { xs: '0.64rem', md: '0.8rem' } }}>
+            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.7, fontWeight: 700, fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
               {b.icon}<span>{b.text}</span>
             </Box>
           ))}
         </Container>
+        {/* Mobile marquee */}
+        <Box sx={{ display: { xs: 'flex', md: 'none' }, width: '100%', overflow: 'hidden' }}>
+          <Box sx={{ display: 'inline-flex', flexShrink: 0, whiteSpace: 'nowrap', animation: 'navMarquee 16s linear infinite', '@keyframes navMarquee': { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } } }}>
+            {[...trustBadges, ...trustBadges].map((b, i) => (
+              <Box key={i} sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 2.2, fontWeight: 700, fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                {b.icon}<span>{b.text}</span>
+              </Box>
+            ))}
+          </Box>
+        </Box>
       </Box>
 
       {/* Mobile drawer */}
