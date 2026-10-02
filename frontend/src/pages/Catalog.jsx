@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Box, Chip, Skeleton, TextField, InputAdornment, Divider } from '@mui/material';
+import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Box, Chip, Skeleton, TextField, InputAdornment, Divider, Select, MenuItem, FormControl } from '@mui/material';
 import { motion } from 'framer-motion';
-import { Plus, Search, ImageOff, Minus, ShoppingBag, Check, Download, Trash2 } from 'lucide-react';
+import { Plus, Search, ImageOff, Minus, ShoppingBag, Check, Download, Trash2, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 import { apiUrl, imgUrl } from '../config';
 import FireworksAnimation from '../components/FireworksAnimation';
+import ComboOffers from '../components/ComboOffers';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -69,7 +70,9 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
       });
   }, []);
 
-  const categories = ['All', ...new Set(products.map(p => p.category))];
+  const COMBO_CAT = '🎁 Combo Packs';
+  const categories = ['All', COMBO_CAT, ...new Set(products.map(p => p.category))];
+  const showingCombos = selectedCategory === COMBO_CAT;
   const filtered = products
     .filter(p => selectedCategory === 'All' || p.category === selectedCategory)
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -169,39 +172,39 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
               sx={{ flexGrow: 1, minWidth: 220, '& .MuiOutlinedInput-root': { borderRadius: '14px', bgcolor: 'rgba(255,255,255,0.06)' } }}
             />
             <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }} />
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {categories.map(cat => (
-                <Chip 
-                  key={cat} 
-                  label={cat} 
-                  onClick={() => setSelectedCategory(cat)}
-                  sx={{ 
-                    fontWeight: 600, 
-                    borderRadius: '12px',
-                    px: 1.5,
-                    py: 2.2,
-                    fontSize: '0.85rem',
-                    bgcolor: selectedCategory === cat ? '#111' : 'rgba(255,255,255,0.08)',
-                    color: selectedCategory === cat ? '#fff' : '#C4B5D4',
-                    '&:hover': { bgcolor: selectedCategory === cat ? '#222' : 'rgba(255,255,255,0.12)' },
-                    transition: 'all 0.25s'
-                  }} 
-                />
-              ))}
-            </Box>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 260 } }}>
+              <Select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                IconComponent={(props) => <ChevronDown size={18} color="#8E7CAD" {...props} />}
+                startAdornment={<InputAdornment position="start"><SlidersHorizontal size={17} color="#8E7CAD" /></InputAdornment>}
+                MenuProps={{ PaperProps: { sx: { maxHeight: 360, bgcolor: 'rgba(26,11,48,0.98)', backdropFilter: 'blur(14px)', border: '1px solid rgba(212,175,55,0.25)', borderRadius: '14px', mt: 0.5, '& .MuiMenuItem-root': { color: '#C4B5D4', fontSize: '0.88rem', '&:hover': { bgcolor: 'rgba(212,175,55,0.12)' }, '&.Mui-selected': { bgcolor: 'rgba(212,175,55,0.18)', color: '#F6F1FF', fontWeight: 700, '&:hover': { bgcolor: 'rgba(212,175,55,0.24)' } } } } } }}
+                sx={{ borderRadius: '14px', bgcolor: 'rgba(255,255,255,0.06)', color: '#F6F1FF', fontWeight: 600, fontSize: '0.9rem', '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.12)' }, '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(212,175,55,0.4)' }, '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#D4AF37' }, '& .MuiSelect-icon': { position: 'absolute', right: 10, pointerEvents: 'none' } }}
+              >
+                {categories.map(cat => (
+                  <MenuItem key={cat} value={cat}>{cat === 'All' ? 'All Categories' : cat}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Box>
         </motion.div>
 
         {/* Results Count */}
-        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography sx={{ color: '#A99BC9', fontSize: '0.9rem' }}>
-            Showing <strong style={{ color: '#F6F1FF' }}>{filtered.length}</strong> products
-            {selectedCategory !== 'All' && <> in <Chip label={selectedCategory} size="small" sx={{ ml: 1, fontWeight: 600, bgcolor: 'rgba(212,175,55,0.1)', color: '#D4AF37' }} /></>}
-          </Typography>
-        </Box>
+        {!showingCombos && (
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography sx={{ color: '#A99BC9', fontSize: '0.9rem' }}>
+              Showing <strong style={{ color: '#F6F1FF' }}>{filtered.length}</strong> products
+              {selectedCategory !== 'All' && <> in <Chip label={selectedCategory} size="small" sx={{ ml: 1, fontWeight: 600, bgcolor: 'rgba(212,175,55,0.1)', color: '#D4AF37' }} /></>}
+            </Typography>
+          </Box>
+        )}
       </Container>
 
+      {/* ────────────────── COMBO PACKS (shown when the Combo filter is selected) ────────────────── */}
+      {showingCombos && <ComboOffers addToCart={addToCart} cart={cart} />}
+
       {/* ────────────────── PRODUCTS GRID ────────────────── */}
+      {!showingCombos && (
       <Container maxWidth="lg" sx={{ pb: 16 }}>
         <Grid container spacing={3.5}>
           {loading ? (
@@ -363,6 +366,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
           </Box>
         )}
       </Container>
+      )}
       </Box>
     </Box>
   );
