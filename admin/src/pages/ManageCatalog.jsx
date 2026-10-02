@@ -12,7 +12,7 @@ import {
 import api from '../api';
 import { imgUrl } from '../config';
 
-const EMPTY_FORM = { name: '', description: '', price: '', discountedPrice: '', category: '', image: '', inStock: true, sku: '', unit: 'pcs', gstRate: '0', hsn: '', priceIncludesTax: false, stockQuantity: '0', trackStock: false };
+const EMPTY_FORM = { name: '', description: '', price: '', discountedPrice: '', category: '', image: '', sku: '', unit: 'pcs' };
 
 // <img> that falls back to a placeholder when the src is missing or fails to load.
 // Resets its "broken" state whenever the src changes, so typing/correcting a URL re-attempts
@@ -47,7 +47,6 @@ const PreviewCard = ({ form }) => {
           <Typography sx={{ fontWeight: 900, fontSize: '1.3rem', color: '#D4AF37' }}>₹{shown}</Typography>
           {offer > 0 && <Typography sx={{ textDecoration: 'line-through', color: '#7C6BA0', fontSize: '0.85rem' }}>₹{price}</Typography>}
         </Box>
-        {!form.inStock && <Chip label="Out of Stock" size="small" sx={{ mt: 1, bgcolor: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 700, fontSize: '0.65rem' }} />}
       </CardContent>
     </Card>
   );
@@ -58,7 +57,6 @@ const ManageCatalog = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
-  const [stockFilter, setStockFilter] = useState('All'); // 'All' | 'in' | 'out'
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null); // product being edited, or null for "new"
@@ -96,10 +94,7 @@ const ManageCatalog = () => {
 
   const filtered = useMemo(() => products
     .filter(p => category === 'All' || p.category === category)
-    .filter(p => stockFilter === 'All' || (stockFilter === 'in' ? p.inStock : !p.inStock))
-    .filter(p => p.name.toLowerCase().includes(search.toLowerCase())), [products, category, stockFilter, search]);
-
-  const inStockCount = products.filter(p => p.inStock).length;
+    .filter(p => p.name.toLowerCase().includes(search.toLowerCase())), [products, category, search]);
 
   const setField = (key, value) => setForm(f => ({ ...f, [key]: value }));
 
@@ -122,9 +117,7 @@ const ManageCatalog = () => {
     setForm({
       name: p.name || '', description: p.description || '', price: p.price ?? '',
       discountedPrice: p.discountedPrice ?? '', category: p.category || '',
-      image: p.image || '', inStock: p.inStock !== false,
-      sku: p.sku || '', unit: p.unit || 'pcs', gstRate: p.gstRate ?? '0', stockQuantity: p.stockQuantity ?? '0', trackStock: !!p.trackStock,
-      hsn: p.hsn || '', priceIncludesTax: !!p.priceIncludesTax,
+      image: p.image || '', sku: p.sku || '', unit: p.unit || 'pcs',
     });
     setDialogOpen(true);
   };
@@ -160,10 +153,8 @@ const ManageCatalog = () => {
       price: priceNum,
       discountedPrice: form.discountedPrice === '' ? null : offerNum, // null clears any existing offer
       image: form.image.trim(),
-      inStock: form.inStock,
-      sku: form.sku.trim(), unit: form.unit.trim() || 'pcs', gstRate: Number(form.gstRate) || 0,
-      hsn: form.hsn.trim(), priceIncludesTax: form.priceIncludesTax,
-      stockQuantity: Math.max(0, Number(form.stockQuantity) || 0), trackStock: form.trackStock,
+      inStock: true, // stock tracking removed — every product is always available
+      sku: form.sku.trim(), unit: form.unit.trim() || 'pcs',
     };
     try {
       if (editing) {
@@ -190,17 +181,9 @@ const ManageCatalog = () => {
     }
   };
 
-  const toggleStock = async (p) => {
-    try {
-      await api.put(`/products/${p._id}`, { inStock: !p.inStock });
-      setProducts(prev => prev.map(x => x._id === p._id ? { ...x, inStock: !x.inStock } : x));
-    } catch (err) {
-      alert('Could not update stock status.');
-    }
-  };
 
   // Columns the importer understands (also the template header order).
-  const TEMPLATE_COLUMNS = ['name', 'description', 'price', 'discountedPrice', 'category', 'image', 'inStock', 'sku', 'unit', 'stockQuantity', 'trackStock'];
+  const TEMPLATE_COLUMNS = ['name', 'description', 'price', 'discountedPrice', 'category', 'image', 'sku', 'unit'];
   // Forgiving header matching: lowercased, spaces/underscores stripped → canonical key.
   const HEADER_ALIASES = {
     id: 'id', name: 'name', productname: 'name', description: 'description', desc: 'description',
@@ -215,8 +198,8 @@ const ManageCatalog = () => {
   const csvCell = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const downloadTemplate = () => {
     const samples = [
-      { name: 'Red Sparkler 10cm', description: 'Bright red sparkler', price: 120, discountedPrice: 100, category: 'Sparklers', image: '', inStock: 'TRUE', sku: 'SPK-RED-10', unit: 'box', stockQuantity: 50, trackStock: 'TRUE' },
-      { name: 'Flower Pot Small', description: '', price: 80, discountedPrice: '', category: 'Flower Pots', image: '', inStock: 'TRUE', sku: 'FP-S', unit: 'box', stockQuantity: 0, trackStock: 'FALSE' },
+      { name: 'Red Sparkler 10cm', description: 'Bright red sparkler', price: 120, discountedPrice: 100, category: 'Sparklers', image: '', sku: 'SPK-RED-10', unit: 'box' },
+      { name: 'Flower Pot Small', description: '', price: 80, discountedPrice: '', category: 'Flower Pots', image: '', sku: 'FP-S', unit: 'box' },
     ];
     const lines = [TEMPLATE_COLUMNS.join(','), ...samples.map((r) => TEMPLATE_COLUMNS.map((c) => csvCell(r[c])).join(','))];
     const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
@@ -230,14 +213,12 @@ const ManageCatalog = () => {
   // (change a few cells → only those products change) while blank-id rows are added as new.
   const downloadCatalog = () => {
     const cols = ['id', ...TEMPLATE_COLUMNS];
-    const boolCell = (v) => (v === false ? 'FALSE' : 'TRUE');
     const lines = [cols.join(',')];
     for (const p of products) {
       const row = {
         id: p._id, name: p.name, description: p.description, price: p.price,
         discountedPrice: p.discountedPrice ?? '', category: p.category,
-        image: p.image, inStock: boolCell(p.inStock), sku: p.sku,
-        unit: p.unit, stockQuantity: p.stockQuantity ?? 0, trackStock: boolCell(p.trackStock),
+        image: p.image, sku: p.sku, unit: p.unit,
       };
       lines.push(cols.map((c) => csvCell(row[c])).join(','));
     }
@@ -291,8 +272,6 @@ const ManageCatalog = () => {
 
   const stats = [
     { icon: <Boxes size={22} />, label: 'Total Products', value: products.length, color: '#D4AF37' },
-    { icon: <CheckCircle2 size={22} />, label: 'In Stock', value: inStockCount, color: '#10b981' },
-    { icon: <XCircle size={22} />, label: 'Out of Stock', value: products.length - inStockCount, color: '#ef4444' },
     { icon: <Tag size={22} />, label: 'Categories', value: categories.length, color: '#A855F7' },
   ];
 
@@ -345,17 +324,6 @@ const ManageCatalog = () => {
               sx={{ fontWeight: 600, borderRadius: '10px', bgcolor: category === cat ? '#D4AF37' : 'rgba(255,255,255,0.08)', color: category === cat ? '#1A0B30' : '#C4B5D4', '&:hover': { bgcolor: category === cat ? '#E8C84A' : 'rgba(255,255,255,0.12)' } }} />
           ))}
         </Box>
-        <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' }, borderColor: 'rgba(255,255,255,0.1)' }} />
-        {/* Stock filter */}
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {[{ k: 'All', label: 'All Stock' }, { k: 'in', label: 'In Stock' }, { k: 'out', label: 'Out of Stock' }].map(s => (
-            <Chip key={s.k} label={s.label} onClick={() => setStockFilter(s.k)}
-              sx={{ fontWeight: 600, borderRadius: '10px',
-                bgcolor: stockFilter === s.k ? (s.k === 'out' ? '#ef4444' : s.k === 'in' ? '#10b981' : '#D4AF37') : 'rgba(255,255,255,0.08)',
-                color: stockFilter === s.k ? (s.k === 'All' ? '#1A0B30' : '#fff') : '#C4B5D4',
-                '&:hover': { bgcolor: stockFilter === s.k ? undefined : 'rgba(255,255,255,0.12)' } }} />
-          ))}
-        </Box>
       </Box>
 
       {/* Product Grid */}
@@ -395,11 +363,6 @@ const ManageCatalog = () => {
                       </Box>
 
                       <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <FormControlLabel
-                          control={<Switch size="small" checked={!!p.inStock} onChange={() => toggleStock(p)} />}
-                          label={<Typography sx={{ fontSize: '0.78rem', color: p.inStock ? '#10b981' : '#ef4444', fontWeight: 700 }}>{p.inStock ? 'In Stock' : 'Out of Stock'}</Typography>}
-                          sx={{ m: 0 }}
-                        />
                         <Box sx={{ display: 'flex', gap: 1 }}>
                           <Button fullWidth size="small" variant="outlined" startIcon={<Edit size={14} />} onClick={() => openEdit(p)}
                             sx={{ borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, borderColor: 'rgba(255,255,255,0.2)', color: '#C4B5D4', '&:hover': { borderColor: '#D4AF37', color: '#D4AF37' } }}>Edit</Button>
@@ -455,12 +418,6 @@ const ManageCatalog = () => {
                   <TextField fullWidth label="Unit" value={form.unit} onChange={(e) => setField('unit', e.target.value)} placeholder="pcs / box" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
                 </Grid>
                 <Grid item xs={6} sm={3}>
-                  <TextField fullWidth label="Stock Qty" type="number" value={form.stockQuantity} disabled={!form.trackStock} onChange={(e) => setField('stockQuantity', e.target.value)} inputProps={{ min: 0 }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
-                </Grid>
-                <Grid item xs={12}>
-                  <FormControlLabel control={<Switch checked={form.trackStock} onChange={(e) => setField('trackStock', e.target.checked)} />} label={<Typography sx={{ color: '#F6F1FF', fontWeight: 600 }}>Track stock automatically when billing</Typography>} />
-                </Grid>
-                <Grid item xs={6} sm={3}>
                   <TextField fullWidth label="Offer (₹)" type="number" value={form.discountedPrice} onChange={(e) => setField('discountedPrice', e.target.value)}
                     error={offerFilled && !offerValid}
                     helperText={offerTooHigh ? 'Must be less than MRP' : (offerFilled && !offerValid ? 'Enter a valid amount' : ' ')}
@@ -483,13 +440,6 @@ const ManageCatalog = () => {
                     {form.image && <Button size="small" onClick={() => setField('image', '')} sx={{ color: '#ef4444', fontWeight: 700 }}>Remove</Button>}
                   </Box>
                   <Typography sx={{ color: '#7C6BA0', fontSize: '0.72rem', mt: 1 }}>JPG, PNG, WEBP or GIF · up to 5 MB</Typography>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={<Switch checked={form.inStock} onChange={(e) => setField('inStock', e.target.checked)} />}
-                    label={<Typography sx={{ color: '#F6F1FF', fontWeight: 600 }}>Available (In Stock)</Typography>}
-                  />
                 </Grid>
               </Grid>
             </Grid>

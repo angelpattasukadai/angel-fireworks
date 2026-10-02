@@ -55,7 +55,6 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
 
   const categories = ['All', ...new Set(products.map(p => p.category))];
   const filtered = products
-    .filter(p => p.inStock) // only show available products to customers
     .filter(p => selectedCategory === 'All' || p.category === selectedCategory)
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
