@@ -3,7 +3,7 @@ import { AppBar, Toolbar, Typography, Button, Box, Badge, Container, IconButton,
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ShoppingBag, Menu as MenuIcon, X, Phone, ShieldCheck, Truck, BadgePercent } from 'lucide-react';
 import { motion } from 'framer-motion';
-import logo2 from '../assets/logo2.png';
+import navLogo from '../assets/nav-logo.png';
 
 const navLinks = [
   { label: 'Home', path: '/' },
@@ -37,7 +37,7 @@ const Navbar = ({ cartCount }) => {
           {/* Left: Logo (flex:1 keeps the nav links centred) */}
           <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', minWidth: 0 }}>
             <Box component={Link} to="/" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
-              <Box component="img" src={logo2} alt="Angel Fireworks" sx={{ height: { xs: 34, md: 46 }, objectFit: 'contain', borderRadius: '6px' }} />
+              <Box component="img" src={navLogo} alt="Angel Fireworks — Gold Bird Brand" sx={{ height: { xs: 46, md: 60 }, objectFit: 'contain' }} />
             </Box>
           </Box>
 
@@ -122,7 +122,7 @@ const Navbar = ({ cartCount }) => {
       <Drawer anchor="right" open={open} onClose={() => setOpen(false)}
         PaperProps={{ sx: { width: 270, bgcolor: 'rgba(22, 6, 46, 0.98)', backdropFilter: 'blur(16px)', borderLeft: '1px solid rgba(255,255,255,0.1)', color: '#F6F1FF' } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2 }}>
-          <Box component="img" src={logo2} alt="Angel Fireworks" sx={{ height: 34, borderRadius: '6px' }} />
+          <Box component="img" src={navLogo} alt="Angel Fireworks" sx={{ height: 44 }} />
           <IconButton onClick={() => setOpen(false)} sx={{ color: '#C4B5D4' }} aria-label="Close menu"><X size={22} /></IconButton>
         </Box>
         <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
