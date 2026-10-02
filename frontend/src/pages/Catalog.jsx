@@ -10,6 +10,27 @@ const fadeUp = {
   visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.06, duration: 0.5, ease: [0.4, 0, 0.2, 1] } })
 };
 
+// Static sparkle positions for the light background (computed once, pure CSS animation).
+const BG_SPARKLES = Array.from({ length: 14 }, () => ({
+  top: `${Math.round(Math.random() * 100)}%`,
+  left: `${Math.round(Math.random() * 100)}%`,
+  size: Math.round(3 + Math.random() * 4),
+  dur: (2.5 + Math.random() * 3).toFixed(1),
+  delay: (Math.random() * 4).toFixed(1),
+}));
+
+// Lightweight GPU-only animated background — fixed behind content, no scroll impact.
+const CatalogBackground = () => (
+  <Box aria-hidden sx={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+    <Box sx={{ position: 'absolute', top: '-12%', left: '-6%', width: { xs: 260, md: 420 }, height: { xs: 260, md: 420 }, borderRadius: '50%', background: 'radial-gradient(circle, rgba(212,175,55,0.14), transparent 70%)', filter: 'blur(70px)', willChange: 'transform', animation: 'bgFloatA 22s ease-in-out infinite', '@keyframes bgFloatA': { '0%,100%': { transform: 'translate(0,0) scale(1)' }, '50%': { transform: 'translate(60px,40px) scale(1.15)' } } }} />
+    <Box sx={{ position: 'absolute', bottom: '-12%', right: '-6%', width: { xs: 280, md: 460 }, height: { xs: 280, md: 460 }, borderRadius: '50%', background: 'radial-gradient(circle, rgba(168,85,247,0.13), transparent 70%)', filter: 'blur(80px)', willChange: 'transform', animation: 'bgFloatB 27s ease-in-out infinite', '@keyframes bgFloatB': { '0%,100%': { transform: 'translate(0,0) scale(1)' }, '50%': { transform: 'translate(-70px,-50px) scale(1.2)' } } }} />
+    <Box sx={{ position: 'absolute', top: '45%', left: '55%', width: { xs: 220, md: 320 }, height: { xs: 220, md: 320 }, borderRadius: '50%', background: 'radial-gradient(circle, rgba(157,23,109,0.12), transparent 70%)', filter: 'blur(70px)', willChange: 'transform', animation: 'bgFloatA 31s ease-in-out infinite' }} />
+    {BG_SPARKLES.map((s, i) => (
+      <Box key={i} sx={{ position: 'absolute', top: s.top, left: s.left, width: s.size, height: s.size, borderRadius: '50%', bgcolor: '#D4AF37', boxShadow: '0 0 6px #D4AF37', willChange: 'opacity, transform', animation: `bgTwinkle ${s.dur}s ease-in-out ${s.delay}s infinite`, '@keyframes bgTwinkle': { '0%,100%': { opacity: 0.12, transform: 'scale(0.8)' }, '50%': { opacity: 0.75, transform: 'scale(1.3)' } } }} />
+    ))}
+  </Box>
+);
+
 const NoImagePlaceholder = () => (
   <Box sx={{ 
     width: '100%', 
@@ -122,7 +143,9 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
   };
 
   return (
-    <Box sx={{ minHeight: '100vh' }}>
+    <Box sx={{ minHeight: '100vh', position: 'relative' }}>
+      <CatalogBackground />
+      <Box sx={{ position: 'relative', zIndex: 1 }}>
       {/* ────────────────── PAGE HEADER ────────────────── */}
       <Box sx={{ pt: { xs: 4, md: 8 }, pb: { xs: 3, md: 5 } }}>
         <Container maxWidth="lg">
@@ -349,6 +372,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
           </Box>
         )}
       </Container>
+      </Box>
     </Box>
   );
 };
