@@ -274,7 +274,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                         {/* Quantity + Add Button — stack on mobile so the Add button isn't squeezed */}
                         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' } }}>
                           {/* Quantity Selector */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden', width: 'fit-content', alignSelf: 'center' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden', width: 'fit-content', height: 46, flexShrink: 0 }}>
                             <Button size="small"
                               onClick={() => {
                                 const q = clampQ(displayQty(product._id));
@@ -315,7 +315,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                                 disabled={!product.inStock}
                                 onClick={() => { if (!isInCart(product._id)) addToCart(product, clampQ(displayQty(product._id))); }}
                                 sx={{
-                                  bgcolor: isInCart(product._id) ? '#10b981' : '#111', color: '#fff', borderRadius: '12px', py: 1, fontWeight: 700, fontSize: '0.8rem',
+                                  bgcolor: isInCart(product._id) ? '#10b981' : '#111', color: '#fff', borderRadius: '12px', height: 46, fontWeight: 700, fontSize: '0.8rem',
                                   cursor: isInCart(product._id) ? 'default' : 'pointer',
                                   '&:hover': { bgcolor: isInCart(product._id) ? '#10b981' : '#D4AF37', color: isInCart(product._id) ? '#fff' : '#000' },
                                   '&:disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' },
