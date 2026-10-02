@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Shield, Sparkles, Percent, MapPin, Building, Star, Clock, Truck, Award, PhoneCall } from 'lucide-react';
 import logo1 from '../assets/logo1.png';
 import logo2 from '../assets/logo2.png';
+import heroBanner from '../assets/hero-banner.jpg';
 import addPoster from '../assets/add.jpeg';
 import FireworksAnimation from '../components/FireworksAnimation';
 import LegalNotice from '../components/LegalNotice';
@@ -98,8 +99,8 @@ const Home = () => {
               </motion.div>
             </Grid>
 
-            {/* Right: Logo with glow */}
-            <Grid item xs={12} md={5} sx={{ display: { xs: 'none', md: 'flex' }, justifyContent: 'center', alignItems: 'center' }}>
+            {/* Right: Promo banner with glow */}
+            <Grid item xs={12} md={5} sx={{ display: 'flex', mt: { xs: 3, md: 0 }, justifyContent: 'center', alignItems: 'center' }}>
               <motion.div 
                 initial={{ opacity: 0, scale: 0.5 }} 
                 animate={{ opacity: 1, scale: 1 }} 
@@ -119,18 +120,20 @@ const Home = () => {
                       '50%': { transform: 'scale(1.15)', opacity: 1 },
                     }
                   }} />
-                  <Box 
-                    component="img" 
-                    src={logo1} 
-                    alt="Angel Gold Bird Brand" 
-                    sx={{ 
-                      width: { md: 280, lg: 320 }, 
-                      height: 'auto', 
-                      position: 'relative', 
+                  <Box
+                    component="img"
+                    src={heroBanner}
+                    alt="Angel Fireworks — Factory Direct Sales"
+                    sx={{
+                      width: { xs: '100%', sm: 440, md: 400, lg: 480 },
+                      maxWidth: '100%',
+                      height: 'auto',
+                      position: 'relative',
                       zIndex: 2,
-                      filter: 'drop-shadow(0 0 30px rgba(212,175,55,0.4))',
-                      borderRadius: '50%',
-                    }} 
+                      borderRadius: '20px',
+                      border: '2px solid rgba(212,175,55,0.35)',
+                      boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 40px rgba(212,175,55,0.2)',
+                    }}
                   />
                 </Box>
               </motion.div>
