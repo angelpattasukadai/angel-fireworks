@@ -141,7 +141,7 @@ const Gallery = () => {
             </IconButton>
 
             {/* Prev Button */}
-            <IconButton onClick={goPrev} sx={{ position: 'absolute', left: 16, color: '#fff', bgcolor: 'rgba(255,255,255,0.1)', zIndex: 10, '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
+            <IconButton onClick={goPrev} sx={{ position: 'absolute', left: { xs: 6, sm: 16 }, top: '42%', transform: 'translateY(-50%)', color: '#fff', bgcolor: 'rgba(0,0,0,0.45)', zIndex: 10, '&:hover': { bgcolor: 'rgba(0,0,0,0.65)' } }}>
               <ChevronLeft size={28} />
             </IconButton>
 
@@ -158,7 +158,7 @@ const Gallery = () => {
             </Box>
 
             {/* Next Button */}
-            <IconButton onClick={goNext} sx={{ position: 'absolute', right: 16, color: '#fff', bgcolor: 'rgba(255,255,255,0.1)', zIndex: 10, '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' } }}>
+            <IconButton onClick={goNext} sx={{ position: 'absolute', right: { xs: 6, sm: 16 }, top: '42%', transform: 'translateY(-50%)', color: '#fff', bgcolor: 'rgba(0,0,0,0.45)', zIndex: 10, '&:hover': { bgcolor: 'rgba(0,0,0,0.65)' } }}>
               <ChevronRight size={28} />
             </IconButton>
           </Box>

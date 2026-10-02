@@ -16,7 +16,7 @@ const About = () => {
 
       {/* ────────────────── HERO BANNER ────────────────── */}
       <Box sx={{ pt: { xs: 6, md: 10 }, pb: { xs: 8, md: 14 }, position: 'relative', overflow: 'hidden' }}>
-        <Box sx={{ position: 'absolute', top: '-20%', right: '-10%', width: 600, height: 600, background: 'radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(60px)', zIndex: 0 }} />
+        <Box sx={{ position: 'absolute', top: '-20%', right: '-10%', width: { xs: 320, md: 600 }, height: { xs: 320, md: 600 }, background: 'radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(60px)', zIndex: 0 }} />
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           <Grid container spacing={8} alignItems="center">
             <Grid item xs={12} md={6}>
@@ -101,7 +101,7 @@ const About = () => {
           ].map((card, i) => (
             <Grid item xs={12} sm={6} md={4} key={i}>
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i} variants={fadeUp} style={{ height: '100%' }}>
-                <Card className="glass-card" sx={{ p: 5, height: '100%', borderRadius: '24px', display: 'flex', flexDirection: 'column' }}>
+                <Card className="glass-card" sx={{ p: { xs: 3, md: 5 }, height: '100%', borderRadius: '24px', display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ bgcolor: 'rgba(212,175,55,0.08)', p: 2, borderRadius: '16px', display: 'inline-flex', alignSelf: 'flex-start', mb: 3, color: '#D4AF37' }}>
                     {card.icon}
                   </Box>

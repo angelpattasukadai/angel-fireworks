@@ -243,23 +243,23 @@ const Catalog = ({ addToCart }) => {
                           </Box>
                         </Box>
 
-                        {/* Quantity + Add Button */}
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        {/* Quantity + Add Button — stack on mobile so the Add button isn't squeezed */}
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' } }}>
                           {/* Quantity Selector */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden' }}>
-                            <Button size="small" onClick={() => setQuantity(product._id, getQuantity(product._id) - 1)} sx={{ minWidth: 32, px: 0, color: '#A99BC9' }}>
-                              <Minus size={14} />
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden', width: { xs: '100%', sm: 'auto' } }}>
+                            <Button size="small" onClick={() => setQuantity(product._id, getQuantity(product._id) - 1)} sx={{ minWidth: 42, px: 0, py: 0.6, color: '#A99BC9' }}>
+                              <Minus size={16} />
                             </Button>
-                            <Typography sx={{ px: 1.5, fontWeight: 700, fontSize: '0.85rem', color: '#F6F1FF', minWidth: 24, textAlign: 'center' }}>
+                            <Typography sx={{ px: 2, fontWeight: 700, fontSize: '0.9rem', color: '#F6F1FF', minWidth: 28, textAlign: 'center' }}>
                               {getQuantity(product._id)}
                             </Typography>
-                            <Button size="small" onClick={() => setQuantity(product._id, getQuantity(product._id) + 1)} sx={{ minWidth: 32, px: 0, color: '#A99BC9' }}>
-                              <Plus size={14} />
+                            <Button size="small" onClick={() => setQuantity(product._id, getQuantity(product._id) + 1)} sx={{ minWidth: 42, px: 0, py: 0.6, color: '#A99BC9' }}>
+                              <Plus size={16} />
                             </Button>
                           </Box>
 
                           {/* Add Button */}
-                          <motion.div whileTap={{ scale: 0.95 }} style={{ flexGrow: 1 }}>
+                          <motion.div whileTap={{ scale: 0.95 }} style={{ flexGrow: 1, width: '100%' }}>
                             <Button 
                               variant="contained" fullWidth
                               startIcon={<ShoppingBag size={15} />}

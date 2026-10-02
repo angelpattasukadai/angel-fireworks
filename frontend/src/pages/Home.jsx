@@ -30,7 +30,7 @@ const Home = () => {
         pb: { xs: 8, md: 0 }
       }}>
         {/* Decorative gold blobs */}
-        <Box sx={{ position: 'absolute', top: '-15%', right: '-8%', width: 650, height: 650, background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(60px)', zIndex: 0 }} />
+        <Box sx={{ position: 'absolute', top: '-15%', right: '-8%', width: { xs: 320, md: 650 }, height: { xs: 320, md: 650 }, background: 'radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(60px)', zIndex: 0 }} />
         <Box sx={{ position: 'absolute', bottom: '-25%', left: '-12%', width: 500, height: 500, background: 'radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(50px)', zIndex: 0 }} />
 
         {/* Fireworks Animation */}
@@ -44,12 +44,12 @@ const Home = () => {
                 <Chip 
                   icon={<Percent size={14} color="#D4AF37" />} 
                   label="MEGA OFFER — UP TO 80% OFF" 
-                  sx={{ bgcolor: 'rgba(212,175,55,0.1)', color: '#D4AF37', fontWeight: 800, mb: 4, px: 1.5, py: 2.5, fontSize: '0.8rem', letterSpacing: 1.5, borderRadius: '8px', border: '1px solid rgba(212,175,55,0.2)' }} 
+                  sx={{ bgcolor: 'rgba(212,175,55,0.1)', color: '#D4AF37', fontWeight: 800, mb: 4, px: 1.5, py: 2.5, fontSize: { xs: '0.68rem', sm: '0.8rem' }, letterSpacing: { xs: 0.5, sm: 1.5 }, borderRadius: '8px', border: '1px solid rgba(212,175,55,0.2)' }}
                 />
               </motion.div>
 
               <motion.div initial="hidden" animate="visible" custom={1} variants={fadeUp}>
-                <Typography variant="h1" sx={{ fontSize: { xs: '3rem', sm: '4rem', md: '5rem' }, lineHeight: 1.05, mb: 3, color: '#F6F1FF', letterSpacing: '-2px' }}>
+                <Typography variant="h1" sx={{ fontSize: { xs: '2.4rem', sm: '4rem', md: '5rem' }, lineHeight: 1.08, mb: 3, color: '#F6F1FF', letterSpacing: { xs: '-1px', md: '-2px' } }}>
                   Light Up Your <br />
                   <Box component="span" sx={{ color: '#D4AF37', fontStyle: 'italic' }}>Celebrations</Box>
                 </Typography>
@@ -180,7 +180,7 @@ const Home = () => {
           ].map((card, i) => (
             <Grid item xs={12} md={4} key={i}>
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i} variants={fadeUp} style={{ height: '100%' }}>
-                <Card className="glass-card" sx={{ p: 5, height: '100%', borderRadius: '24px', display: 'flex', flexDirection: 'column' }}>
+                <Card className="glass-card" sx={{ p: { xs: 3, md: 5 }, height: '100%', borderRadius: '24px', display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ bgcolor: 'rgba(212,175,55,0.08)', p: 2, borderRadius: '16px', display: 'inline-flex', alignSelf: 'flex-start', mb: 3, color: '#D4AF37' }}>
                     {card.icon}
                   </Box>
