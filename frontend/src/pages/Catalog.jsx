@@ -32,7 +32,6 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedStock, setSelectedStock] = useState('All'); // 'All' | 'in' | 'out'
   const [quantities, setQuantities] = useState({});
   const [imgErrors, setImgErrors] = useState({});
 
@@ -56,8 +55,8 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
 
   const categories = ['All', ...new Set(products.map(p => p.category))];
   const filtered = products
+    .filter(p => p.inStock) // only show available products to customers
     .filter(p => selectedCategory === 'All' || p.category === selectedCategory)
-    .filter(p => selectedStock === 'All' || (selectedStock === 'in' ? p.inStock : !p.inStock))
     .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   const cartItem = (id) => cart.find((item) => item.product._id === id);
@@ -123,28 +122,6 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                     '&:hover': { bgcolor: selectedCategory === cat ? '#222' : 'rgba(255,255,255,0.12)' },
                     transition: 'all 0.25s'
                   }} 
-                />
-              ))}
-            </Box>
-            <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', md: 'block' } }} />
-            {/* Stock filter */}
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {[{ k: 'All', label: 'All' }, { k: 'in', label: 'In Stock' }, { k: 'out', label: 'Out of Stock' }].map(s => (
-                <Chip
-                  key={s.k}
-                  label={s.label}
-                  onClick={() => setSelectedStock(s.k)}
-                  sx={{
-                    fontWeight: 600,
-                    borderRadius: '12px',
-                    px: 1.5,
-                    py: 2.2,
-                    fontSize: '0.85rem',
-                    bgcolor: selectedStock === s.k ? (s.k === 'out' ? '#ef4444' : s.k === 'in' ? '#10b981' : '#111') : 'rgba(255,255,255,0.08)',
-                    color: selectedStock === s.k ? '#fff' : '#C4B5D4',
-                    '&:hover': { bgcolor: selectedStock === s.k ? undefined : 'rgba(255,255,255,0.12)' },
-                    transition: 'all 0.25s'
-                  }}
                 />
               ))}
             </Box>
