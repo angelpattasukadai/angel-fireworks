@@ -135,7 +135,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
           const offer = r.p.discountedPrice || r.p.price;
           return `<tr>
             <td class="c">${r.sno}</td>
-            <td>${esc(r.p.name)}${r.p.description ? `<div class="ta">${esc(r.p.description)}</div>` : ''}</td>
+            <td><span class="nm">${esc(r.p.name)}</span>${r.p.description ? `<div class="ta">${esc(r.p.description)}</div>` : ''}</td>
             <td class="r mrp">₹${r.p.price}</td>
             <td class="r off">₹${offer}</td>
           </tr>`;
@@ -143,10 +143,12 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
 
         const el = document.createElement('div');
         el.id = 'angel-pl';
-        el.style.cssText = 'position:fixed;left:-99999px;top:0;width:760px;background:#fff;padding:22px;box-sizing:border-box';
+        el.style.cssText = 'position:fixed;left:-99999px;top:0;width:760px;background:#fff;color:#1a1a1a;padding:22px;box-sizing:border-box';
         el.innerHTML = `
           <style>
-            #angel-pl *{font-family:Arial,Helvetica,sans-serif;margin:0;box-sizing:border-box}
+            #angel-pl *{font-family:Arial,Helvetica,sans-serif;margin:0;box-sizing:border-box;color:inherit}
+            #angel-pl td{color:#1a1a1a}
+            #angel-pl .nm{color:#1A0B30;font-weight:600}
             #angel-pl .head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #D4AF37;padding-bottom:8px;margin-bottom:12px}
             #angel-pl .brand{color:#B8860B;font-size:21px;font-weight:bold}
             #angel-pl .tag{color:#555;font-size:11px;margin-top:2px}
