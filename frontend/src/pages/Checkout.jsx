@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { Container, Grid, Typography, TextField, Button, Box, Paper, Divider, Alert, Chip, IconButton, InputAdornment } from '@mui/material';
+import { Container, Grid, Typography, TextField, Button, Box, Paper, Divider, Alert, Chip, IconButton, InputAdornment, CircularProgress } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info, Trash2, Plus, Minus, CheckCircle, MessageCircle, User, Phone, MapPin, Hash, ShieldCheck, Truck, PhoneCall, ShoppingBag } from 'lucide-react';
 import axios from 'axios';
 import { apiUrl, imgUrl } from '../config';
 import LegalNotice from '../components/LegalNotice';
-
-// Business WhatsApp number that receives order inquiries
-const WHATSAPP_NUMBER = '916374254296';
 
 const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
   const [formData, setFormData] = useState({
@@ -19,6 +16,8 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
     customerState: 'Tamil Nadu'
   });
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -49,44 +48,29 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const buildWhatsAppMessage = () => {
-    const lines = [
-      '*🎆 New Order Inquiry — Angel Fireworks*',
-      '',
-      `*Name:* ${formData.customerName}`,
-      `*Phone:* ${formData.customerPhone}`,
-      ...(formData.customerAltPhone ? [`*Alt Phone:* ${formData.customerAltPhone}`] : []),
-      `*Address:* ${formData.customerAddress}`,
-      `*Pincode:* ${formData.customerPincode}`,
-      `*State:* ${formData.customerState}`,
-      '',
-      '*Order Details:*',
-      ...cart.map((item, i) => `${i + 1}. ${item.product.name} — ${item.quantity} × ₹${item.price} = ₹${item.price * item.quantity}`),
-      '',
-      `*Estimated Total: ₹${total}*`,
-    ];
-    return lines.join('\n');
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!phoneValid || !pincodeValid || !altPhoneValid) return; // phone (10), pincode (6), optional alt phone (10)
 
-    // Open WhatsApp synchronously (avoids popup blockers) with the pre-filled order
-    const message = buildWhatsAppMessage();
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
-
-    // Save the inquiry to the backend as well (best effort)
+    // Submit the enquiry straight to our portal. The shop is notified on WhatsApp from the server.
     const orderData = {
       ...formData,
       items: cart.map(c => ({ product: c.product._id, name: c.product.name, quantity: c.quantity, price: c.price })),
       totalAmount: total
     };
-    axios.post(apiUrl('/api/orders'), orderData).catch(err => console.error('Error saving order', err));
-
-    setSubmitted(true);
-    clearCart();
+    setSubmitting(true);
+    setSubmitError('');
+    try {
+      // A sleeping backend can take up to ~50s to wake, so allow a generous timeout.
+      await axios.post(apiUrl('/api/orders'), orderData, { timeout: 90000 });
+      setSubmitted(true);
+      clearCart();
+    } catch (err) {
+      setSubmitError('Could not submit your enquiry. Please check your internet and try again in a moment.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -99,12 +83,12 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
               <CheckCircle size={60} color="#25D366" />
             </Box>
           </Box>
-          <Typography variant="h3" sx={{ mb: 3, fontWeight: 800, color: '#D4AF37' }}>Order Sent! 🎆</Typography>
+          <Typography variant="h3" sx={{ mb: 3, fontWeight: 800, color: '#D4AF37' }}>Enquiry Received! 🎆</Typography>
           <Typography sx={{ color: '#C4B5D4', mb: 2, fontSize: '1.1rem', lineHeight: 1.8 }}>
-            Thanks, <strong style={{ color: '#F6F1FF' }}>{formData.customerName}</strong>! We've opened <strong style={{ color: '#25D366' }}>WhatsApp</strong> with your full order details.
+            Thanks, <strong style={{ color: '#F6F1FF' }}>{formData.customerName}</strong>! Your order enquiry has reached us successfully.
           </Typography>
           <Typography sx={{ color: '#A99BC9', mb: 5, fontSize: '0.98rem', lineHeight: 1.8 }}>
-            Just hit send on WhatsApp to confirm. Our team will reach you on <strong style={{ color: '#D4AF37' }}>{formData.customerPhone}</strong> to finalize the order and arrange offline payment & delivery.
+            Our team will reach you on <strong style={{ color: '#D4AF37' }}>{formData.customerPhone}</strong> within 24 hours to confirm the order and arrange payment &amp; delivery.
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button variant="contained" href="/" sx={{ px: 5, py: 1.5, borderRadius: '50px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, '&:hover': { bgcolor: '#E8C84A' } }}>Return to Home</Button>
@@ -126,7 +110,7 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
               Complete Your Order
             </Typography>
             <Typography sx={{ color: '#C4B5D4', fontSize: '1.12rem', lineHeight: 1.8 }}>
-              Fill in your details and send your order straight to our team on WhatsApp. We'll confirm everything and arrange safe delivery to your doorstep.
+              Fill in your details and submit your enquiry — it reaches our team instantly. We'll confirm everything and arrange safe delivery to your doorstep.
             </Typography>
           </Box>
         </motion.div>
@@ -192,16 +176,18 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
                     )}
                   </AnimatePresence>
 
-                  <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
-                    <Button type="submit" variant="contained" size="large" fullWidth disabled={cart.length === 0 || !phoneValid || !pincodeValid || !altPhoneValid}
-                      startIcon={<MessageCircle size={22} />}
-                      sx={{ mt: 4, py: 2, bgcolor: '#25D366', color: '#fff', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', boxShadow: '0 8px 25px rgba(37,211,102,0.35)', '&:hover': { bgcolor: '#1fb855', boxShadow: '0 12px 32px rgba(37,211,102,0.45)' }, '&:disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' } }}
+                  {submitError && <Alert severity="error" sx={{ mt: 3, borderRadius: '12px' }}>{submitError}</Alert>}
+
+                  <motion.div whileHover={{ scale: submitting ? 1 : 1.01 }} whileTap={{ scale: submitting ? 1 : 0.99 }}>
+                    <Button type="submit" variant="contained" size="large" fullWidth disabled={cart.length === 0 || !phoneValid || !pincodeValid || !altPhoneValid || submitting}
+                      startIcon={submitting ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : <ShoppingBag size={22} />}
+                      sx={{ mt: 3, py: 2, bgcolor: '#D4AF37', color: '#1A0B30', borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem', boxShadow: '0 8px 25px rgba(212,175,55,0.35)', '&:hover': { bgcolor: '#E8C84A', boxShadow: '0 12px 32px rgba(212,175,55,0.45)' }, '&:disabled': { bgcolor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)' } }}
                     >
-                      {cart.length === 0 ? 'Add items from the catalog first' : 'Send Order via WhatsApp'}
+                      {cart.length === 0 ? 'Add items from the catalog first' : submitting ? 'Submitting…' : 'Submit Enquiry'}
                     </Button>
                   </motion.div>
                   <Typography sx={{ color: '#A99BC9', fontSize: '0.82rem', textAlign: 'center', mt: 2 }}>
-                    🔒 No online payment needed. We confirm your order personally before delivery.
+                    🔒 No online payment needed. Your enquiry reaches us instantly — we confirm your order personally before delivery.
                   </Typography>
                 </form>
               </Paper>
