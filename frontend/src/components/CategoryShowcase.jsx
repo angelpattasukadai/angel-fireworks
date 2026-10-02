@@ -2,19 +2,20 @@ import React from 'react';
 import { Box, Container, Typography, Grid, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Flame, Rocket, Zap, Star, Gift, CircleDot, Disc3, Wind, Pencil, Cloud, Volume2, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import CategoryArt from './CategoryArt';
 
-// Our real catalog categories, each given its own theme + icon. `img` is optional:
-// drop a custom banner later and it shows instead of the gradient art.
+// Our real catalog categories, each given its own theme + SVG illustration.
+// `img` is optional: drop a custom banner later and it shows instead of the art.
 const CATEGORIES = [
-  { name: 'Sparklers',        icon: Sparkles,  grad: 'linear-gradient(145deg,#B8860B,#8A6508)', img: null },
-  { name: 'Flower Pots',      icon: Flame,     grad: 'linear-gradient(145deg,#C2410C,#7C2208)', img: null },
-  { name: 'Chakkar & Wheels', icon: Disc3,     grad: 'linear-gradient(145deg,#7C3AED,#4C1D95)', img: null },
-  { name: 'Aerial Shots',     icon: Rocket,    grad: 'linear-gradient(145deg,#1D4ED8,#172554)', img: null },
-  { name: 'Fancy Shots',      icon: Zap,       grad: 'linear-gradient(145deg,#DB2777,#831843)', img: null },
-  { name: 'Bombs',            icon: CircleDot, grad: 'linear-gradient(145deg,#B91C1C,#7F1D1D)', img: null },
-  { name: 'Rockets',          icon: Rocket,    grad: 'linear-gradient(145deg,#0E7490,#164E63)', img: null },
-  { name: 'Fancy Novelties',  icon: Gift,      grad: 'linear-gradient(145deg,#15803D,#14532D)', img: null },
+  { name: 'Sparklers',        grad: 'linear-gradient(145deg,#B8860B,#8A6508)', img: null },
+  { name: 'Flower Pots',      grad: 'linear-gradient(145deg,#C2410C,#7C2208)', img: null },
+  { name: 'Chakkar & Wheels', grad: 'linear-gradient(145deg,#7C3AED,#4C1D95)', img: null },
+  { name: 'Aerial Shots',     grad: 'linear-gradient(145deg,#1D4ED8,#172554)', img: null },
+  { name: 'Fancy Shots',      grad: 'linear-gradient(145deg,#DB2777,#831843)', img: null },
+  { name: 'Bombs',            grad: 'linear-gradient(145deg,#B91C1C,#7F1D1D)', img: null },
+  { name: 'Rockets',          grad: 'linear-gradient(145deg,#0E7490,#164E63)', img: null },
+  { name: 'Fancy Novelties',  grad: 'linear-gradient(145deg,#15803D,#14532D)', img: null },
 ];
 
 const fadeUp = {
@@ -43,7 +44,6 @@ const CategoryShowcase = () => {
 
         <Grid container spacing={{ xs: 2, md: 3 }}>
           {CATEGORIES.map((cat, i) => {
-            const Icon = cat.icon;
             return (
               <Grid item xs={6} sm={4} md={3} key={cat.name}>
                 <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} custom={i} variants={fadeUp} style={{ height: '100%' }}>
@@ -70,12 +70,14 @@ const CategoryShowcase = () => {
                     {/* Bottom shade for text legibility */}
                     <Box sx={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.5) 100%)' }} />
 
-                    <Box sx={{ position: 'relative', zIndex: 1, p: { xs: 2, md: 2.5 }, minHeight: { xs: 150, sm: 180, md: 210 }, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                      <Box className="cat-icon" sx={{ display: 'inline-flex', alignSelf: 'flex-start', p: 1.2, borderRadius: '14px', bgcolor: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(4px)', color: '#fff', transition: 'transform 0.3s' }}>
-                        <Icon size={24} />
+                    <Box sx={{ position: 'relative', zIndex: 1, p: { xs: 2, md: 2.5 }, minHeight: { xs: 170, sm: 200, md: 230 }, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <Box className="cat-icon" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexGrow: 1, transition: 'transform 0.3s', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.35))' }}>
+                        <Box sx={{ width: { xs: 86, sm: 100, md: 112 } }}>
+                          <CategoryArt name={cat.name} />
+                        </Box>
                       </Box>
-                      <Box>
-                        <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: { xs: '1rem', md: '1.2rem' }, lineHeight: 1.2, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                      <Box sx={{ textAlign: 'center' }}>
+                        <Typography sx={{ color: '#fff', fontWeight: 900, fontSize: { xs: '0.95rem', md: '1.15rem' }, lineHeight: 1.2, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
                           {cat.name}
                         </Typography>
                         <Box className="shopnow" sx={{ mt: 1.2, display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1.6, py: 0.6, borderRadius: '50px', bgcolor: 'rgba(255,255,255,0.9)', color: '#1A0B30', fontWeight: 800, fontSize: '0.72rem', transition: 'all 0.3s' }}>
