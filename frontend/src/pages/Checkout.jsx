@@ -68,7 +68,7 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
       // Keep a snapshot so the customer can download their order after the cart is cleared.
       setSubmittedOrder({
         ...formData,
-        items: cart.map(c => ({ name: c.product.name, quantity: c.quantity, price: c.price })),
+        items: cart.map(c => ({ name: c.product.name, quantity: c.quantity, price: c.price, mrp: c.product.price })),
         total,
         date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
       });
@@ -85,9 +85,13 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
   const downloadOrder = () => {
     const o = submittedOrder;
     if (!o) return;
-    const rows = o.items.map((it, i) =>
-      `<tr><td class="c">${i + 1}</td><td>${it.name}</td><td class="r">₹${it.price}</td><td class="c">${it.quantity}</td><td class="r">₹${it.price * it.quantity}</td></tr>`
-    ).join('');
+    const rows = o.items.map((it, i) => {
+      const mrp = it.mrp || it.price;
+      const strike = mrp > it.price ? `<span class="s">₹${mrp}</span>` : `₹${mrp}`;
+      return `<tr><td class="c">${i + 1}</td><td>${it.name}</td><td class="r">${strike}</td><td class="r off">₹${it.price}</td><td class="c">${it.quantity}</td><td class="r">₹${it.price * it.quantity}</td></tr>`;
+    }).join('');
+    const normalTotal = o.items.reduce((s, it) => s + (it.mrp || it.price) * it.quantity, 0);
+    const saved = normalTotal - o.total;
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Angel Fireworks Order Enquiry</title>
       <style>
         *{font-family:Arial,Helvetica,sans-serif}
@@ -99,7 +103,11 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
         th,td{border:1px solid #ddd;padding:7px 8px}
         th{background:#1A0B30;color:#fff;text-align:left}
         td.r{text-align:right}td.c{text-align:center;width:40px}
-        .total{text-align:right;font-weight:bold;font-size:15px;margin-top:10px;color:#B8860B}
+        .s{text-decoration:line-through;color:#999}
+        .off{color:#B8860B;font-weight:bold}
+        .totrow{text-align:right;font-size:13px;margin-top:4px}
+        .save{color:#1a7f37;font-weight:bold}
+        .total{text-align:right;font-weight:bold;font-size:16px;margin-top:6px;color:#B8860B}
         .note{color:#666;font-size:11px;margin-top:16px;font-style:italic}
         @media print{body{margin:10px}}
       </style></head>
@@ -112,7 +120,9 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
           ${o.customerAddress}${o.customerPincode ? ' - ' + o.customerPincode : ''}<br/>
           ${o.customerState}
         </div>
-        <table><thead><tr><th>#</th><th>Item</th><th>Rate</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
+        <table><thead><tr><th>#</th><th>Item</th><th>Normal</th><th>Offer</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="totrow">Total (Normal Rate): <span class="s">₹${normalTotal}</span></div>
+        ${saved > 0 ? `<div class="totrow save">You Save: ₹${saved}</div>` : ''}
         <div class="total">Estimated Total: ₹${o.total}</div>
         <div class="note">This is an order enquiry, not a tax invoice. Our team will contact you within 24 hours to confirm pricing, availability, payment and delivery.</div>
       </body></html>`;
