@@ -272,7 +272,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                         </Box>
 
                         {/* Quantity + Add Button — stack on mobile so the Add button isn't squeezed */}
-                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexDirection: { xs: 'column', sm: 'row' } }}>
+                        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexDirection: 'column' }}>
                           {/* Quantity Selector */}
                           <Box sx={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', border: '1.5px solid rgba(255,255,255,0.15)', borderRadius: '12px', overflow: 'hidden', width: 'fit-content', height: 46, flexShrink: 0 }}>
                             <Button size="small"
@@ -306,8 +306,8 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                             </Button>
                           </Box>
 
-                          {/* Add Button — adds to cart; once added it's just a green confirmation (remove via the − / trash) */}
-                          <Box sx={{ width: { xs: '100%', sm: 'auto' }, flexGrow: { xs: 0, sm: 1 } }}>
+                          {/* Add Button — always full width, below the stepper (adds; once added it's a green confirmation, remove via − / trash) */}
+                          <Box sx={{ width: '100%' }}>
                             <motion.div whileTap={{ scale: isInCart(product._id) ? 1 : 0.95 }} style={{ width: '100%' }}>
                               <Button
                                 variant="contained" fullWidth disableRipple={isInCart(product._id)}
