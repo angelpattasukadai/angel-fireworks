@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Grid, Card, CardContent, CardMedia, Typography, Button, Box, Chip, Skeleton, TextField, InputAdornment, Divider, Select, MenuItem, FormControl, CircularProgress } from '@mui/material';
 import { motion } from 'framer-motion';
+import { useSearchParams } from 'react-router-dom';
 import { Plus, Search, ImageOff, Minus, ShoppingBag, Check, Download, Trash2, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 import { apiUrl, imgUrl } from '../config';
@@ -43,8 +44,9 @@ const NoImagePlaceholder = () => (
 const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState(() => searchParams.get('category') || 'All');
   const [quantities, setQuantities] = useState({});
   const [imgErrors, setImgErrors] = useState({});
   const [visibleCount, setVisibleCount] = useState(24); // render in batches for speed
@@ -52,6 +54,12 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
 
   // Reset the batch when the filters change.
   useEffect(() => { setVisibleCount(24); }, [searchTerm, selectedCategory]);
+
+  // Preselect the category when arriving via a ?category= link (Home "Shop by Category").
+  useEffect(() => {
+    const c = searchParams.get('category');
+    if (c) setSelectedCategory(c);
+  }, [searchParams]);
 
   useEffect(() => {
     axios.get(apiUrl('/api/products'))

@@ -10,6 +10,7 @@ import addPoster from '../assets/add.jpeg';
 import FireworksAnimation from '../components/FireworksAnimation';
 import LegalNotice from '../components/LegalNotice';
 import ComboCarousel from '../components/ComboCarousel';
+import CategoryShowcase from '../components/CategoryShowcase';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
@@ -170,6 +171,9 @@ const Home = ({ addToCart, cart }) => {
         </Container>
       </Box>
 
+
+      {/* ────────────────── SHOP BY CATEGORY ────────────────── */}
+      <CategoryShowcase />
 
       {/* ────────────────── WHY CHOOSE US ────────────────── */}
       <Container maxWidth="lg" sx={{ py: { xs: 10, md: 16 } }}>
