@@ -207,7 +207,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                         <Chip 
                           label={product.category} 
                           size="small" 
-                          sx={{ position: 'absolute', top: 22, left: 22, bgcolor: 'rgba(255,255,255,0.95)', color: '#1A0B30', fontWeight: 700, fontSize: '0.68rem', borderRadius: '8px', backdropFilter: 'blur(4px)' }}
+                          sx={{ position: 'absolute', top: 14, left: 14, maxWidth: 'calc(100% - 92px)', bgcolor: 'rgba(255,255,255,0.95)', color: '#1A0B30', fontWeight: 700, fontSize: '0.64rem', borderRadius: '8px', backdropFilter: 'blur(4px)', '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
                         />
                         
                         {/* Discount Badge */}
@@ -215,7 +215,7 @@ const Catalog = ({ addToCart, cart = [], updateCartQuantity, removeFromCart }) =
                           <Chip 
                             label={`${discountPercent}% OFF`} 
                             size="small" 
-                            sx={{ position: 'absolute', top: 22, right: 22, bgcolor: '#D4AF37', color: '#000', fontWeight: 800, fontSize: '0.68rem', borderRadius: '8px' }} 
+                            sx={{ position: 'absolute', top: 14, right: 14, bgcolor: '#D4AF37', color: '#000', fontWeight: 800, fontSize: '0.64rem', borderRadius: '8px' }}
                           />
                         )}
 
