@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Grid, Typography, TextField, Button, Box, Paper, Divider, Alert, Chip, IconButton, InputAdornment, CircularProgress } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Info, Trash2, Plus, Minus, CheckCircle, MessageCircle, User, Phone, MapPin, Hash, ShieldCheck, Truck, PhoneCall, ShoppingBag } from 'lucide-react';
+import { Info, Trash2, Plus, Minus, CheckCircle, MessageCircle, User, Phone, MapPin, Hash, ShieldCheck, Truck, PhoneCall, ShoppingBag, Download } from 'lucide-react';
 import axios from 'axios';
 import { apiUrl, imgUrl } from '../config';
 import LegalNotice from '../components/LegalNotice';
@@ -18,6 +18,7 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [submittedOrder, setSubmittedOrder] = useState(null); // snapshot kept after the cart is cleared
 
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -64,6 +65,13 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
     try {
       // A sleeping backend can take up to ~50s to wake, so allow a generous timeout.
       await axios.post(apiUrl('/api/orders'), orderData, { timeout: 90000 });
+      // Keep a snapshot so the customer can download their order after the cart is cleared.
+      setSubmittedOrder({
+        ...formData,
+        items: cart.map(c => ({ name: c.product.name, quantity: c.quantity, price: c.price })),
+        total,
+        date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      });
       setSubmitted(true);
       clearCart();
     } catch (err) {
@@ -71,6 +79,49 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Let the customer download/print a copy of their order enquiry.
+  const downloadOrder = () => {
+    const o = submittedOrder;
+    if (!o) return;
+    const rows = o.items.map((it, i) =>
+      `<tr><td class="c">${i + 1}</td><td>${it.name}</td><td class="r">₹${it.price}</td><td class="c">${it.quantity}</td><td class="r">₹${it.price * it.quantity}</td></tr>`
+    ).join('');
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Angel Fireworks Order Enquiry</title>
+      <style>
+        *{font-family:Arial,Helvetica,sans-serif}
+        body{margin:24px;color:#111}
+        h1{color:#B8860B;margin:0 0 2px;font-size:22px}
+        .sub{color:#555;font-size:12px;margin-bottom:14px}
+        .box{border:1px solid #ddd;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:13px;line-height:1.6}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th,td{border:1px solid #ddd;padding:7px 8px}
+        th{background:#1A0B30;color:#fff;text-align:left}
+        td.r{text-align:right}td.c{text-align:center;width:40px}
+        .total{text-align:right;font-weight:bold;font-size:15px;margin-top:10px;color:#B8860B}
+        .note{color:#666;font-size:11px;margin-top:16px;font-style:italic}
+        @media print{body{margin:10px}}
+      </style></head>
+      <body>
+        <h1>M/S Angel Pattasu Kadai — Order Enquiry</h1>
+        <div class="sub">Gold Bird Brand &middot; angelpattasukadai.in &middot; ${o.date}</div>
+        <div class="box">
+          <strong>${o.customerName}</strong><br/>
+          Ph: ${o.customerPhone}${o.customerAltPhone ? ' / ' + o.customerAltPhone : ''}<br/>
+          ${o.customerAddress}${o.customerPincode ? ' - ' + o.customerPincode : ''}<br/>
+          ${o.customerState}
+        </div>
+        <table><thead><tr><th>#</th><th>Item</th><th>Rate</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
+        <div class="total">Estimated Total: ₹${o.total}</div>
+        <div class="note">This is an order enquiry, not a tax invoice. Our team will contact you within 24 hours to confirm pricing, availability, payment and delivery.</div>
+      </body></html>`;
+    const w = window.open('', '_blank');
+    if (!w) { alert('Please allow pop-ups to download your order.'); return; }
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { try { w.print(); } catch (e) {} }, 500);
   };
 
   if (submitted) {
@@ -90,8 +141,14 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
           <Typography sx={{ color: '#A99BC9', mb: 5, fontSize: '0.98rem', lineHeight: 1.8 }}>
             Our team will reach you on <strong style={{ color: '#D4AF37' }}>{formData.customerPhone}</strong> within 24 hours to confirm the order and arrange payment &amp; delivery.
           </Typography>
+          {submittedOrder && (
+            <Button onClick={downloadOrder} variant="contained" startIcon={<Download size={18} />}
+              sx={{ mb: 3, px: 5, py: 1.5, borderRadius: '50px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, '&:hover': { bgcolor: '#E8C84A' } }}>
+              Download My Order
+            </Button>
+          )}
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button variant="contained" href="/" sx={{ px: 5, py: 1.5, borderRadius: '50px', bgcolor: '#D4AF37', color: '#1A0B30', fontWeight: 800, '&:hover': { bgcolor: '#E8C84A' } }}>Return to Home</Button>
+            <Button variant="outlined" href="/" sx={{ px: 5, py: 1.5, borderRadius: '50px', borderColor: 'rgba(255,255,255,0.2)', color: '#C4B5D4', fontWeight: 700, '&:hover': { borderColor: '#D4AF37', color: '#D4AF37' } }}>Return to Home</Button>
             <Button variant="outlined" href="/catalog" sx={{ px: 5, py: 1.5, borderRadius: '50px', borderColor: 'rgba(255,255,255,0.2)', color: '#C4B5D4', fontWeight: 700, '&:hover': { borderColor: '#D4AF37', color: '#D4AF37' } }}>Order More</Button>
           </Box>
         </motion.div>
