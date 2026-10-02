@@ -57,7 +57,8 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
     // Submit the enquiry straight to our portal. The shop is notified on WhatsApp from the server.
     const orderData = {
       ...formData,
-      items: cart.map(c => ({ product: c.product._id, name: c.product.name, quantity: c.quantity, price: c.price })),
+      // Combo packs have a synthetic id (not a Mongo ObjectId), so omit `product` for them.
+      items: cart.map(c => ({ ...(c.product.isCombo ? {} : { product: c.product._id }), name: c.product.name, quantity: c.quantity, price: c.price })),
       totalAmount: total
     };
     setSubmitting(true);

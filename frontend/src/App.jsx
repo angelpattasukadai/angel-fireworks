@@ -58,7 +58,7 @@ function App() {
         <Navbar cartCount={cart.reduce((a, c) => a + c.quantity, 0)} />
         <Box component="main" sx={{ flexGrow: 1, pt: { xs: '96px', md: '106px' } }}>
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home addToCart={addToCart} cart={cart} />} />
             <Route path="/catalog" element={<Catalog addToCart={addToCart} cart={cart} updateCartQuantity={updateCartQuantity} removeFromCart={removeFromCart} />} />
             <Route path="/about" element={<About />} />
             <Route path="/gallery" element={<Gallery />} />

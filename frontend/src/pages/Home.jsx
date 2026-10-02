@@ -9,13 +9,14 @@ import heroBanner from '../assets/hero-banner.jpg';
 import addPoster from '../assets/add.jpeg';
 import FireworksAnimation from '../components/FireworksAnimation';
 import LegalNotice from '../components/LegalNotice';
+import ComboOffers from '../components/ComboOffers';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
   visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.15, duration: 0.6, ease: [0.4, 0, 0.2, 1] } })
 };
 
-const Home = () => {
+const Home = ({ addToCart, cart }) => {
   return (
     <Box sx={{ overflowX: 'hidden' }}>
 
@@ -165,6 +166,9 @@ const Home = () => {
           </Grid>
         </Container>
       </Box>
+
+      {/* ────────────────── COMBO PACKS ────────────────── */}
+      <ComboOffers addToCart={addToCart} cart={cart} />
 
       {/* ────────────────── WHY CHOOSE US ────────────────── */}
       <Container maxWidth="lg" sx={{ py: { xs: 10, md: 16 } }}>
