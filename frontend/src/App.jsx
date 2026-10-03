@@ -10,6 +10,7 @@ import About from './pages/About';
 import Gallery from './pages/Gallery';
 import Wholesale from './pages/Wholesale';
 import { Box } from '@mui/material';
+import { apiUrl } from './config';
 
 const CART_STORAGE_KEY = 'angel_cart';
 
@@ -27,6 +28,12 @@ function App() {
   useEffect(() => {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
   }, [cart]);
+
+  // Wake the free-tier backend as soon as the site loads, so it's warm long
+  // before the customer reaches checkout (avoids a slow first submit).
+  useEffect(() => {
+    fetch(apiUrl('/api/health')).catch(() => {});
+  }, []);
 
   const addToCart = (product, quantity) => {
     const existing = cart.find(item => item.product._id === product._id);

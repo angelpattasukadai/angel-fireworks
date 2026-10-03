@@ -19,11 +19,18 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submittedOrder, setSubmittedOrder] = useState(null); // snapshot kept after the cart is cleared
+  const [slowHint, setSlowHint] = useState(false); // shown when submit takes a while (cold backend)
 
   // After submitting, jump to the top so the success screen is visible (not stuck at the bottom).
   useEffect(() => {
     if (submitted) window.scrollTo({ top: 0, behavior: 'auto' });
   }, [submitted]);
+
+  // Wake the (free-tier) backend as soon as checkout opens, so by the time the
+  // customer finishes the form it's already warm and submit is instant.
+  useEffect(() => {
+    axios.get(apiUrl('/api/health'), { timeout: 60000 }).catch(() => {});
+  }, []);
 
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -68,6 +75,9 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
     };
     setSubmitting(true);
     setSubmitError('');
+    setSlowHint(false);
+    // If it's a cold backend, reassure the customer after a few seconds.
+    const slowTimer = setTimeout(() => setSlowHint(true), 6000);
     try {
       // A sleeping backend can take up to ~50s to wake, so allow a generous timeout.
       await axios.post(apiUrl('/api/orders'), orderData, { timeout: 90000 });
@@ -83,7 +93,9 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
     } catch (err) {
       setSubmitError('Could not submit your enquiry. Please check your internet and try again in a moment.');
     } finally {
+      clearTimeout(slowTimer);
       setSubmitting(false);
+      setSlowHint(false);
     }
   };
 
@@ -259,6 +271,15 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
                       {cart.length === 0 ? 'Add items from the catalog first' : submitting ? 'Submitting…' : 'Submit Enquiry'}
                     </Button>
                   </motion.div>
+                  <AnimatePresence>
+                    {submitting && slowHint && (
+                      <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                        <Typography sx={{ color: '#D4AF37', fontSize: '0.86rem', textAlign: 'center', mt: 2, fontWeight: 600 }}>
+                          ⏳ Connecting to our server… this can take up to a minute the first time. Please don't close this page.
+                        </Typography>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <Typography sx={{ color: '#A99BC9', fontSize: '0.82rem', textAlign: 'center', mt: 2 }}>
                     🔒 No online payment needed. Your enquiry reaches us instantly — we confirm your order personally before delivery.
                   </Typography>
