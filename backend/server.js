@@ -79,11 +79,17 @@ app.listen(PORT, () => {
 });
 
 // Keep the free Render instance warm so customers don't hit a ~50s cold start.
-// Pings its own public health URL every 14 min (Render sleeps after 15 min idle).
+// Pings its own public health URL every 10 min (Render sleeps after 15 min idle —
+// 10 min leaves a safe margin even if a ping is delayed or fails once).
+// NOTE: a self-ping only prevents sleeping while the service is running; it cannot
+// wake a service that has already slept. For rock-solid uptime, also add a free
+// external monitor (UptimeRobot / cron-job.org) hitting /api/health every 5 min.
 const SELF_URL = process.env.RENDER_EXTERNAL_URL;
 if (SELF_URL) {
     setInterval(() => {
         fetch(`${SELF_URL}/api/health`).catch(() => {});
-    }, 14 * 60 * 1000);
+    }, 10 * 60 * 1000);
     console.log('Keep-alive self-ping enabled:', SELF_URL);
+} else {
+    console.warn('⚠️  RENDER_EXTERNAL_URL not set — keep-alive self-ping is OFF (expect cold starts).');
 }
