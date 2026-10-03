@@ -1,3 +1,5 @@
+const https = require('https');
+
 // Sends a WhatsApp alert to the shop when a new order arrives.
 //
 // Supports two providers (set whichever you use in the environment):
@@ -7,6 +9,26 @@
 //
 // If neither pair is set, this is a silent no-op — the order still saves to the
 // dashboard regardless. Never throws; notification is strictly best-effort.
+//
+// NOTE: we use Node's https module (not global fetch). TextMeBot's server rejects
+// undici/fetch GETs with HTTP 411, but accepts a standard client request (like curl).
+
+function httpGet(url) {
+    return new Promise((resolve) => {
+        try {
+            const req = https.get(url, { headers: { 'User-Agent': 'AngelFireworks/1.0' } }, (res) => {
+                let body = '';
+                res.on('data', (c) => { body += c; });
+                res.on('end', () => resolve({ status: res.statusCode, body }));
+            });
+            req.on('error', (err) => resolve({ status: 0, body: String(err.message) }));
+            req.setTimeout(15000, () => { req.destroy(); resolve({ status: 0, body: 'timeout' }); });
+        } catch (err) {
+            resolve({ status: 0, body: String(err.message) });
+        }
+    });
+}
+
 async function notifyWhatsApp(text) {
     const tmbPhone = process.env.TEXTMEBOT_PHONE;
     const tmbKey = process.env.TEXTMEBOT_APIKEY;
@@ -24,11 +46,13 @@ async function notifyWhatsApp(text) {
         return; // no provider configured
     }
 
-    try {
-        const res = await fetch(url, { method: 'GET' });
-        if (!res.ok) console.error('WhatsApp notify failed:', res.status);
-    } catch (err) {
-        console.error('WhatsApp notify error:', err.message);
+    const { status, body } = await httpGet(url);
+    // Some providers (TextMeBot) return HTTP 200/201 even on errors, with the real
+    // result in the body — so log it to make misconfig (bad key / not linked) visible.
+    if (status < 200 || status >= 300 || /error|invalid/i.test(body)) {
+        console.error('WhatsApp notify problem:', status, (body || '').slice(0, 200));
+    } else {
+        console.log('WhatsApp notify sent:', status);
     }
 }
 
