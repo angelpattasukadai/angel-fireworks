@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Grid, Typography, TextField, Button, Box, Paper, Divider, Alert, Chip, IconButton, InputAdornment, CircularProgress } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info, Trash2, Plus, Minus, CheckCircle, MessageCircle, User, Phone, MapPin, Hash, ShieldCheck, Truck, PhoneCall, ShoppingBag, Download } from 'lucide-react';
@@ -19,6 +19,11 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submittedOrder, setSubmittedOrder] = useState(null); // snapshot kept after the cart is cleared
+
+  // After submitting, jump to the top so the success screen is visible (not stuck at the bottom).
+  useEffect(() => {
+    if (submitted) window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [submitted]);
 
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -184,8 +189,8 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
         </motion.div>
 
         <Grid container spacing={{ xs: 4, md: 5 }}>
-          {/* Form */}
-          <Grid item xs={12} md={7}>
+          {/* Form — below the summary on mobile, left column on desktop */}
+          <Grid item xs={12} md={7} sx={{ order: { xs: 2, md: 1 } }}>
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
               <Paper className="glass-panel" sx={{ p: { xs: 3, md: 5 }, borderRadius: '28px' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
@@ -262,10 +267,10 @@ const Checkout = ({ cart, removeFromCart, updateCartQuantity, clearCart }) => {
             </motion.div>
           </Grid>
 
-          {/* Order Summary */}
-          <Grid item xs={12} md={5}>
+          {/* Order Summary — shown first on mobile so customers see their items before the form */}
+          <Grid item xs={12} md={5} sx={{ order: { xs: 1, md: 2 } }}>
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <Paper className="glass-panel" sx={{ p: { xs: 3, md: 4 }, borderRadius: '28px', position: 'sticky', top: 100 }}>
+              <Paper className="glass-panel" sx={{ p: { xs: 3, md: 4 }, borderRadius: '28px', position: { xs: 'static', md: 'sticky' }, top: { md: 100 } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
                   <Typography sx={{ fontWeight: 800, fontSize: '1.3rem', color: '#F6F1FF' }}>Order Summary</Typography>
                   {cart.length > 0 && <Chip label={`${totalItems} item${totalItems > 1 ? 's' : ''}`} size="small" sx={{ bgcolor: 'rgba(212,175,55,0.12)', color: '#D4AF37', fontWeight: 700 }} />}
