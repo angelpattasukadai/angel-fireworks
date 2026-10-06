@@ -44,21 +44,44 @@ export default function BillPrint({ doc, kind = 'invoice' }) {
         </Box>
       </Box>
 
-      {/* Items */}
-      <Table size="small">
-        <TableHead><TableRow>{['S.No', 'Item', 'Normal Rate', 'Discount Rate', 'Off %', 'Qty', 'Amount'].map((h) => <TableCell key={h}>{h}</TableCell>)}</TableRow></TableHead>
-        <TableBody>{doc.items.map((i, n) => (
-          <TableRow key={n}>
-            <TableCell>{n + 1}</TableCell>
-            <TableCell>{i.name}{i.tamilName ? <><br /><span style={{ fontSize: '0.85em', color: '#555' }}>{i.tamilName}</span></> : ''}</TableCell>
-            <TableCell>{i.mrp && i.mrp > i.rate ? <span style={{ textDecoration: 'line-through', color: '#777' }}>{money(i.mrp)}</span> : money(i.mrp || i.rate)}</TableCell>
-            <TableCell>{money(i.rate)}</TableCell>
-            <TableCell>{offPct(i) ? `${offPct(i)}%` : '-'}</TableCell>
-            <TableCell>{i.quantity} {i.unit}</TableCell>
-            <TableCell>{money(i.total)}</TableCell>
-          </TableRow>
-        ))}</TableBody>
-      </Table>
+      {/* Items — full detailed table for short bills; two compact columns for long ones (fits far more per page) */}
+      {doc.items.length > 12 ? (() => {
+        const mid = Math.ceil(doc.items.length / 2);
+        const halves = [doc.items.slice(0, mid), doc.items.slice(mid)];
+        return (
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+            {halves.map((half, hi) => (
+              <Table size="small" key={hi} sx={{ flex: 1, width: '50%' }}>
+                <TableHead><TableRow>{['#', 'Item', 'Rate', 'Qty', 'Amount'].map((h) => <TableCell key={h} sx={{ fontWeight: 700 }}>{h}</TableCell>)}</TableRow></TableHead>
+                <TableBody>{half.map((i, n) => (
+                  <TableRow key={n}>
+                    <TableCell>{(hi === 0 ? 0 : mid) + n + 1}</TableCell>
+                    <TableCell>{i.name}{i.tamilName ? <><br /><span style={{ fontSize: '0.85em', color: '#555' }}>{i.tamilName}</span></> : ''}{i.mrp && i.mrp > i.rate ? <span style={{ fontSize: '0.8em', color: '#c00' }}> ({offPct(i)}% off)</span> : ''}</TableCell>
+                    <TableCell>{money(i.rate)}</TableCell>
+                    <TableCell>{i.quantity}</TableCell>
+                    <TableCell>{money(i.total)}</TableCell>
+                  </TableRow>
+                ))}</TableBody>
+              </Table>
+            ))}
+          </Box>
+        );
+      })() : (
+        <Table size="small">
+          <TableHead><TableRow>{['S.No', 'Item', 'Normal Rate', 'Discount Rate', 'Off %', 'Qty', 'Amount'].map((h) => <TableCell key={h}>{h}</TableCell>)}</TableRow></TableHead>
+          <TableBody>{doc.items.map((i, n) => (
+            <TableRow key={n}>
+              <TableCell>{n + 1}</TableCell>
+              <TableCell>{i.name}{i.tamilName ? <><br /><span style={{ fontSize: '0.85em', color: '#555' }}>{i.tamilName}</span></> : ''}</TableCell>
+              <TableCell>{i.mrp && i.mrp > i.rate ? <span style={{ textDecoration: 'line-through', color: '#777' }}>{money(i.mrp)}</span> : money(i.mrp || i.rate)}</TableCell>
+              <TableCell>{money(i.rate)}</TableCell>
+              <TableCell>{offPct(i) ? `${offPct(i)}%` : '-'}</TableCell>
+              <TableCell>{i.quantity} {i.unit}</TableCell>
+              <TableCell>{money(i.total)}</TableCell>
+            </TableRow>
+          ))}</TableBody>
+        </Table>
+      )}
 
       {/* Totals */}
       <Box sx={{ textAlign: 'right', mt: 2 }}>
