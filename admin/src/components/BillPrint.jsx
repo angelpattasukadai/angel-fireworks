@@ -83,4 +83,23 @@ export default function BillPrint({ doc, kind = 'invoice' }) {
 }
 
 // Shared print CSS string — include once on any page that renders a BillPrint.
-export const PRINT_STYLE = `@media print { body * { visibility: hidden !important; } #invoice-print, #invoice-print * { visibility: visible !important; } .MuiDialog-container { display: block !important; height: auto !important; } .MuiDialog-paper { position: absolute !important; top: 0; left: 0; margin: 0 !important; max-height: none !important; max-width: none !important; width: 100% !important; box-shadow: none !important; overflow: visible !important; } .MuiDialogContent-root { overflow: visible !important; padding: 0 !important; } .MuiDialogTitle-root, .MuiDialogActions-root { display: none !important; } #invoice-print { width: 100%; box-sizing: border-box; border-radius: 0 !important; } }`;
+// Compact rules keep a long bill to as few A4 pages as possible (small fonts,
+// tight rows, smaller logo, minimal margins) — applied ONLY when printing.
+export const PRINT_STYLE = `@media print {
+  @page { size: A4 portrait; margin: 8mm; }
+  body * { visibility: hidden !important; }
+  #invoice-print, #invoice-print * { visibility: visible !important; }
+  .MuiDialog-container { display: block !important; height: auto !important; }
+  .MuiDialog-paper { position: absolute !important; top: 0; left: 0; margin: 0 !important; max-height: none !important; max-width: none !important; width: 100% !important; box-shadow: none !important; overflow: visible !important; }
+  .MuiDialogContent-root { overflow: visible !important; padding: 0 !important; }
+  .MuiDialogTitle-root, .MuiDialogActions-root { display: none !important; }
+  #invoice-print { width: 100%; box-sizing: border-box; border-radius: 0 !important; padding: 4px !important; font-size: 9.5px !important; }
+  #invoice-print .MuiTypography-root { font-size: 9.5px !important; line-height: 1.2 !important; }
+  #invoice-print .MuiTypography-h5 { font-size: 14px !important; }
+  #invoice-print img { height: 48px !important; }
+  #invoice-print table { font-size: 9px !important; }
+  #invoice-print th, #invoice-print td { padding: 1px 5px !important; line-height: 1.18 !important; }
+  #invoice-print tr { page-break-inside: avoid !important; }
+  #invoice-print thead { display: table-header-group !important; }
+  #invoice-print > .MuiBox-root { margin-bottom: 5px !important; }
+}`;
