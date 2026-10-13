@@ -116,13 +116,15 @@ export const PRINT_STYLE = `@media print {
   .MuiDialog-paper { position: absolute !important; top: 0; left: 0; margin: 0 !important; max-height: none !important; max-width: none !important; width: 100% !important; box-shadow: none !important; overflow: visible !important; }
   .MuiDialogContent-root { overflow: visible !important; padding: 0 !important; }
   .MuiDialogTitle-root, .MuiDialogActions-root { display: none !important; }
-  #invoice-print { width: 100%; box-sizing: border-box; border-radius: 0 !important; padding: 4px !important; font-size: 9.5px !important; }
-  #invoice-print .MuiTypography-root { font-size: 9.5px !important; line-height: 1.2 !important; }
-  #invoice-print .MuiTypography-h5 { font-size: 14px !important; }
-  #invoice-print img { height: 48px !important; }
-  #invoice-print table { font-size: 9px !important; }
-  #invoice-print th, #invoice-print td { padding: 1px 5px !important; line-height: 1.18 !important; }
+  #invoice-print { width: 100%; box-sizing: border-box; border-radius: 0 !important; padding: 2px !important; font-size: 8.5px !important; }
+  #invoice-print .MuiTypography-root { font-size: 8.5px !important; line-height: 1.15 !important; margin: 0 !important; }
+  #invoice-print .MuiTypography-h5 { font-size: 13px !important; }
+  #invoice-print img { height: 42px !important; }
+  /* MUI table cells carry their own font-size/padding class — override it directly */
+  #invoice-print table { font-size: 8px !important; }
+  #invoice-print .MuiTableCell-root, #invoice-print th, #invoice-print td { font-size: 8px !important; padding: 0px 4px !important; line-height: 1.12 !important; border-color: #ddd !important; }
+  #invoice-print .MuiTableCell-root span { font-size: 7.5px !important; }
   #invoice-print tr { page-break-inside: avoid !important; }
   #invoice-print thead { display: table-header-group !important; }
-  #invoice-print > .MuiBox-root { margin-bottom: 5px !important; }
+  #invoice-print > .MuiBox-root { margin-bottom: 3px !important; }
 }`;
